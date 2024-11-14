@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<VBox prefHeight="400.0" prefWidth="640.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.teamhydro.slimirrigatiesysteem.Controller">
+    <children>
+        <AnchorPane id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Rectangle fill="WHITE" height="50.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
+
+                <Button fx:id="startButton" layoutX="234.0" layoutY="318.0" mnemonicParsing="false" prefHeight="38.0" prefWidth="177.0" text="Start" textAlignment="CENTER" textFill="WHITE" onAction="#handleStartButtonAction">
+                    <font>
+                        <Font size="20.0" />
+                    </font>
+                </Button>
+
+                <Label alignment="CENTER" layoutX="259.0" layoutY="10.0" text="Team Hydro" textAlignment="CENTER" wrapText="false">
+                    <font>
+                        <Font size="22.0" />
+                    </font>
+                </Label>
+
+                <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="165.0" layoutY="240.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="301.0" />
+
+                <SplitMenuButton fx:id="urenMenu" layoutX="340.0" layoutY="248.0" mnemonicParsing="false" prefHeight="43.0" prefWidth="107.0" text="Uren">
+                    <items>
+                        <MenuItem fx:id="urenMenuItem" mnemonicParsing="false" text="Uren" onAction="#handleUrenMenuItemAction" />
+                        <MenuItem fx:id="dagenMenuItem" mnemonicParsing="false" text="Dagen" onAction="#handleDagenMenuItemAction" />
+                    </items>
+                    <font>
+                        <Font size="15.0" />
+                    </font>
+                </SplitMenuButton>
+
+                <TextField fx:id="tijdTextField" layoutX="234.0" layoutY="248.0" prefHeight="43.0" prefWidth="92.0" promptText="Tijd" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+                    <font>
+                        <Font size="15.0" />
+                    </font>
+                </TextField>
+
+                <ImageView fitHeight="157.0" fitWidth="127.0" layoutX="256.0" layoutY="69.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@plant.png" />
+                    </image>
+                </ImageView>
+
+                <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="592.0" layoutY="9.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@user.png" />
+                    </image>
+                </ImageView>
+
+                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="14.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@menu.png" />
+                    </image>
+                </ImageView>
+
+                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="184.0" layoutY="252.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@clock.png" />
+                    </image>
+                </ImageView>
+            </children>
+        </AnchorPane>
+    </children>
+</VBox>

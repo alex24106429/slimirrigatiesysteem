@@ -1,0 +1,14 @@
+#anchorPane {
+    -fx-background-color:  #dbf3dd;
+}
+
+#startButton {
+    -fx-background-color: #377542;
+    -fx-border-radius: 10px;
+}
+
+TextField {
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 5px;
+}
