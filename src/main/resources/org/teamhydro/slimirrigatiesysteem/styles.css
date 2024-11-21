@@ -2,7 +2,7 @@
     -fx-background-color:  #dbf3dd;
 }
 
-#startButton {
+#startButton, #loginButton {
     -fx-background-color: #377542;
     -fx-border-radius: 10px;
 }

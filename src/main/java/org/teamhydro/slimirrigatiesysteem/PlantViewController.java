@@ -6,7 +6,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
 
-public class Controller {
+public class PlantViewController {
 
     @FXML
     private Button startButton;
@@ -25,8 +25,7 @@ public class Controller {
 
     @FXML
     public void initialize() {
-        // Initialize any necessary setup here
-        System.out.println("Controller initialized.");
+        System.out.println("Plant View Controller initialized.");
     }
 
     // Handler for the Start button
@@ -37,20 +36,18 @@ public class Controller {
         if (enteredText.isEmpty()) {
             System.out.println("Please enter a time.");
         } else {
-            System.out.println("Entered time: " + enteredText);
+            System.out.println("Entered time: " + enteredText + " " + urenMenu.getText());
         }
     }
 
     // Handlers for SplitMenuButton items
     @FXML
     private void handleUrenMenuItemAction() {
-        tijdTextField.setPromptText("Enter hours");
-        System.out.println("Uren selected.");
+        urenMenu.setText("Uren");
     }
 
     @FXML
     private void handleDagenMenuItemAction() {
-        tijdTextField.setPromptText("Enter days");
-        System.out.println("Dagen selected.");
+        urenMenu.setText("Dagen");
     }
 }
