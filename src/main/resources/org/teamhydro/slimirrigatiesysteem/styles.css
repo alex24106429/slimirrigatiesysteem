@@ -5,6 +5,16 @@
 #startButton, #loginButton {
     -fx-background-color: #377542;
     -fx-border-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.buttonAlt {
+    -fx-background-color: transparent;
+    -fx-text-fill: #377542;
+}
+
+.buttonAlt:hover {
+    -fx-underline: true;
 }
 
 TextField {

@@ -35,6 +35,7 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
+        // TODO
         System.out.println("Username: " + username);
         System.out.println("Password: " + password);
 

@@ -36,6 +36,7 @@ public class PlantViewController {
         if (enteredText.isEmpty()) {
             System.out.println("Please enter a time.");
         } else {
+            // TODO
             System.out.println("Entered time: " + enteredText + " " + urenMenu.getText());
         }
     }
