@@ -17,7 +17,7 @@
     -fx-underline: true;
 }
 
-TextField {
+TextField, PasswordField {
     -fx-background-color: white;
     -fx-border-color: #ccc;
     -fx-border-radius: 5px;

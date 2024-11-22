@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -12,7 +13,7 @@
 
 <VBox prefHeight="400.0" prefWidth="640.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.teamhydro.slimirrigatiesysteem.LoginController">
     <children>
-        <AnchorPane id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+        <AnchorPane id="anchorPane" fx:id="mainAnchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
             <children>
                 <Rectangle fill="WHITE" height="400.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="324.0" />
 
@@ -42,22 +43,43 @@
                     </image>
                 </ImageView>
             <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="332.0" layoutY="189.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="301.0" />
-            <TextField fx:id="passwordField" layoutX="401.0" layoutY="197.0" prefHeight="43.0" prefWidth="221.0" promptText="Wachtwoord" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </TextField>
             <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="350.0" layoutY="201.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/key.png" />
                </image>
             </ImageView>
+            <PasswordField fx:id="passwordField" layoutX="401.0" layoutY="197.0" prefHeight="43.0" prefWidth="221.0" promptText="Wachtwoord">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </PasswordField>
             <ImageView fitHeight="181.0" fitWidth="189.0" layoutX="72.0" layoutY="107.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/logo.png" />
                </image>
             </ImageView>
             <Button fx:id="forgotPasswordButton" layoutX="406.0" layoutY="262.0" mnemonicParsing="false" onAction="#handleForgotPasswordButton" styleClass="buttonAlt" text="Wachtwoord vergeten" />
+            <AnchorPane fx:id="invalidLoginOverlay" prefHeight="400.0" prefWidth="640.0" visible="false">
+               <children>
+                  <Rectangle fill="#00000080" height="400.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="WHITE" height="246.0" layoutX="133.0" layoutY="77.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="374.0" />
+                  <ImageView fitHeight="48.0" fitWidth="48.0" layoutX="296.0" layoutY="120.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@icons/alert-triangle-red.png" />
+                     </image>
+                  </ImageView>
+                  <Label layoutX="158.0" layoutY="175.0" prefHeight="58.0" prefWidth="324.0" text="Uw gebruikersnaam of wachtwoord klopt niet. Probeer het opnieuw." textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <Button layoutX="260.0" layoutY="255.0" mnemonicParsing="false" onAction="#onDialogConfirm" prefHeight="37.0" prefWidth="121.0" styleClass="buttonMain" text="Oke" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+               </children>
+            </AnchorPane>
             </children>
         </AnchorPane>
     </children>

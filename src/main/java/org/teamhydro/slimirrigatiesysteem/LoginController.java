@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -26,37 +27,46 @@ public class LoginController {
     @FXML
     private Stage currentStage;
 
-    // This method is called to initialize the controller
+    @FXML
+    private AnchorPane invalidLoginOverlay;
+
     @FXML
     public void initialize() {
         System.out.println("Login Controller initialized.");
+        invalidLoginOverlay.setVisible(false);
     }
 
-    // This method is called when the login button is clicked
     @FXML
     private void handleLoginButtonAction() throws IOException {
         // Retrieve the username and password entered in the TextFields
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // TODO
+        if (username.equals("") || password.equals("")) {
+            invalidLoginOverlay.setVisible(true);
+            return;
+        }
+
         System.out.println("Username: " + username);
         System.out.println("Password: " + password);
 
-        // Switch to the plant view after login
-        switchToPlantView();
+        // After a successful login, switch to the plant view and set the username
+        switchToPlantView(username);
     }
 
-    // This method is called when the login button is clicked
     @FXML
     private void handleForgotPasswordButton() throws IOException {
         System.out.println("Forgot password clicked");
         switchToForgotPasswordView();
     }
 
-    // Method to switch to the plant view (plant-view.fxml)
-    private void switchToPlantView() throws IOException {
-        // Load the plant view FXML
+    @FXML
+    private void onDialogConfirm() throws IOException {
+        invalidLoginOverlay.setVisible(false);
+    }
+
+    // Switch to the plant view and set the username
+    private void switchToPlantView(String username) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("plant-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 400);
 
@@ -64,15 +74,18 @@ public class LoginController {
         currentStage = (Stage) loginButton.getScene().getWindow();
         currentStage.setScene(scene);
         currentStage.setTitle("Plant - Slim Irrigatie Systeem");
+
+        // Get the PlantViewController and set the username
+        PlantViewController plantViewController = fxmlLoader.getController();
+        plantViewController.setUsername(username);
+
         currentStage.show();
     }
 
-    // Method to switch to the forgot password view (passwordrecovery-view.fxml)
     private void switchToForgotPasswordView() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("passwordrecovery-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 400);
 
-        // Get the current stage and switch the scene
         currentStage = (Stage) loginButton.getScene().getWindow();
         currentStage.setScene(scene);
         currentStage.setTitle("Wachtwoord vergeten - Slim Irrigatie Systeem");

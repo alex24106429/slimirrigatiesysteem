@@ -1,15 +1,10 @@
 package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SplitMenuButton;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 
 public class PlantViewController {
-
-    @FXML
-    private Button startButton;
 
     @FXML
     private SplitMenuButton urenMenu;
@@ -18,14 +13,36 @@ public class PlantViewController {
     private TextField tijdTextField;
 
     @FXML
-    private MenuItem urenMenuItem;
+    private AnchorPane userPopout;
 
     @FXML
-    private MenuItem dagenMenuItem;
+    private Label usernameText;
+
+    // New setter method to update the username
+    public void setUsername(String username) {
+        usernameText.setText(username);
+    }
+
+    @FXML
+    private void showUserPopout() {
+        userPopout.setVisible(true);
+    }
+
+    @FXML
+    private void hideUserPopout() {
+        userPopout.setVisible(false);
+    }
+
+    @FXML
+    private void logout() {
+        hideUserPopout();
+        System.out.println("logout() called");
+    }
 
     @FXML
     public void initialize() {
         System.out.println("Plant View Controller initialized.");
+        hideUserPopout();
     }
 
     // Handler for the Start button
