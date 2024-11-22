@@ -16,7 +16,7 @@
             <children>
                 <Rectangle fill="WHITE" height="400.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="324.0" />
 
-                <Button fx:id="loginButton" layoutX="394.0" layoutY="305.0" mnemonicParsing="false" onAction="#handleLoginButtonAction" prefHeight="38.0" prefWidth="177.0" text="Inloggen" textAlignment="CENTER" textFill="WHITE">
+                <Button fx:id="loginButton" layoutX="394.0" layoutY="305.0" mnemonicParsing="false" onAction="#handleLoginButtonAction" prefHeight="38.0" prefWidth="177.0" styleClass="buttonMain" text="Inloggen" textAlignment="CENTER" textFill="WHITE">
                     <font>
                         <Font size="20.0" />
                     </font>
@@ -38,7 +38,7 @@
 
                 <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="350.0" layoutY="137.0" pickOnBounds="true" preserveRatio="true">
                     <image>
-                        <Image url="@user.png" />
+                        <Image url="@icons/user.png" />
                     </image>
                 </ImageView>
             <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="332.0" layoutY="189.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="301.0" />
@@ -49,15 +49,15 @@
             </TextField>
             <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="350.0" layoutY="201.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@key.png" />
+                  <Image url="@icons/key.png" />
                </image>
             </ImageView>
             <ImageView fitHeight="181.0" fitWidth="189.0" layoutX="72.0" layoutY="107.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@logo.png" />
+                  <Image url="@icons/logo.png" />
                </image>
             </ImageView>
-            <Button layoutX="406.0" layoutY="262.0" mnemonicParsing="false" style="-fx-cursor: pointer;" styleClass="buttonAlt" text="Wachtwoord vergeten" />
+            <Button fx:id="forgotPasswordButton" layoutX="406.0" layoutY="262.0" mnemonicParsing="false" onAction="#handleForgotPasswordButton" styleClass="buttonAlt" text="Wachtwoord vergeten" />
             </children>
         </AnchorPane>
     </children>

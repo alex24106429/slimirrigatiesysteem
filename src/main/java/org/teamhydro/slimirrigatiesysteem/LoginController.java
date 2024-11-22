@@ -18,8 +18,12 @@ public class LoginController {
     private TextField passwordField;
 
     @FXML
+    private Button forgotPasswordButton;
+
+    @FXML
     private Button loginButton;
 
+    @FXML
     private Stage currentStage;
 
     // This method is called to initialize the controller
@@ -43,16 +47,35 @@ public class LoginController {
         switchToPlantView();
     }
 
+    // This method is called when the login button is clicked
+    @FXML
+    private void handleForgotPasswordButton() throws IOException {
+        System.out.println("Forgot password clicked");
+        switchToForgotPasswordView();
+    }
+
     // Method to switch to the plant view (plant-view.fxml)
     private void switchToPlantView() throws IOException {
         // Load the plant view FXML
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("plant-view.fxml"));
-        Scene plantScene = new Scene(fxmlLoader.load(), 640, 400);
+        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
 
         // Get the current stage and switch the scene
         currentStage = (Stage) loginButton.getScene().getWindow();
-        currentStage.setScene(plantScene);
+        currentStage.setScene(scene);
         currentStage.setTitle("Plant - Slim Irrigatie Systeem");
+        currentStage.show();
+    }
+
+    // Method to switch to the forgot password view (passwordrecovery-view.fxml)
+    private void switchToForgotPasswordView() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("passwordrecovery-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
+
+        // Get the current stage and switch the scene
+        currentStage = (Stage) loginButton.getScene().getWindow();
+        currentStage.setScene(scene);
+        currentStage.setTitle("Wachtwoord vergeten - Slim Irrigatie Systeem");
         currentStage.show();
     }
 }
