@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="400.0" prefWidth="640.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.teamhydro.slimirrigatiesysteem.ForgotPasswordController">
+    <children>
+        <AnchorPane id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+            <children>
+            <Rectangle fill="WHITE" height="400.0" layoutY="1.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="320.0" />
+            <ImageView fitHeight="48.0" fitWidth="48.0" layoutX="133.0" layoutY="145.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@icons/user.png" />
+               </image>
+            </ImageView>
+            <Button fx:id="backButton" layoutX="315.0" layoutY="332.0" mnemonicParsing="false" onAction="#handleBackButton" prefHeight="37.0" prefWidth="128.0" styleClass="buttonAlt" text="Terug">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+
+                <Button fx:id="recoveryButton" layoutX="466.0" layoutY="329.0" mnemonicParsing="false" onAction="#handleRecoveryButtonAction" prefHeight="43.0" prefWidth="159.0" styleClass="buttonMain" text="Opslaan" textAlignment="CENTER" textFill="WHITE">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Button>
+
+                <Label alignment="CENTER" layoutX="31.0" layoutY="204.0" text="Gebruiker instellingen" textAlignment="CENTER" wrapText="false">
+                    <font>
+                        <Font size="24.0" />
+                    </font>
+                </Label>
+
+                <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="162.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+
+                <TextField fx:id="emailField" layoutX="393.0" layoutY="170.0" prefHeight="43.0" prefWidth="221.0" promptText="Email adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+                    <font>
+                        <Font size="15.0" />
+                    </font>
+                </TextField>
+
+                <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="174.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@icons/mail.png" />
+                    </image>
+                </ImageView>
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="227.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField1" layoutX="393.0" layoutY="235.0" prefHeight="43.0" prefWidth="221.0" promptText="Wachtwoord" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </TextField>
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="239.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@icons/key.png" />
+               </image>
+            </ImageView>
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="34.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField2" layoutX="393.0" layoutY="42.0" prefHeight="43.0" prefWidth="221.0" promptText="Naam" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </TextField>
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@icons/user.png" />
+               </image>
+            </ImageView>
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="99.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField21" layoutX="393.0" layoutY="107.0" prefHeight="43.0" prefWidth="221.0" promptText="Adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </TextField>
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="111.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@icons/map-pin.png" />
+               </image>
+            </ImageView>
+            </children>
+        </AnchorPane>
+    </children>
+</VBox>

@@ -3,6 +3,10 @@ package org.teamhydro.slimirrigatiesysteem;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
+
+import org.teamhydro.slimirrigatiesysteem.MainApplication.*;
 
 import java.io.IOException;
 
@@ -48,6 +52,7 @@ public class PlantViewController {
     public void initialize() {
         System.out.println("Plant View Controller initialized.");
         hideUserPopout();
+        MainApplication.fadeIn(updateOverlay, 200);
     }
 
     // Handler for the Start button
@@ -76,6 +81,6 @@ public class PlantViewController {
 
     @FXML
     private void onDialogConfirm() throws IOException {
-        updateOverlay.setVisible(false);
+        MainApplication.fadeOut(updateOverlay, 200);
     }
 }
