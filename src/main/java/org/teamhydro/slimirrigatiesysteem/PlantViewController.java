@@ -4,6 +4,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 
+import java.io.IOException;
+
 public class PlantViewController {
 
     @FXML
@@ -17,6 +19,9 @@ public class PlantViewController {
 
     @FXML
     private Label usernameText;
+
+    @FXML
+    private AnchorPane updateOverlay;
 
     // New setter method to update the username
     public void setUsername(String username) {
@@ -67,5 +72,10 @@ public class PlantViewController {
     @FXML
     private void handleDagenMenuItemAction() {
         urenMenu.setText("Dagen");
+    }
+
+    @FXML
+    private void onDialogConfirm() throws IOException {
+        updateOverlay.setVisible(false);
     }
 }

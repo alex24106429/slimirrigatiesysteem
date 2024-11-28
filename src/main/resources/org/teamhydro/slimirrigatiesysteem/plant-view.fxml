@@ -78,6 +78,32 @@
                   <Label fx:id="usernameText" alignment="CENTER" layoutY="25.0" prefHeight="26.0" prefWidth="154.0" text="PLACEHOLDER" textAlignment="CENTER" />
                </children>
             </AnchorPane>
+            <AnchorPane fx:id="updateOverlay" prefHeight="400.0" prefWidth="640.0">
+               <children>
+                  <Rectangle fill="#00000080" height="400.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="WHITE" height="246.0" layoutX="133.0" layoutY="77.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="374.0" />
+                  <ImageView fitHeight="48.0" fitWidth="48.0" layoutX="296.0" layoutY="120.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@icons/alert-triangle-red.png" />
+                     </image>
+                  </ImageView>
+                  <Label alignment="CENTER" layoutX="158.0" layoutY="175.0" prefHeight="58.0" prefWidth="324.0" text="Er is een update beschikbaar." wrapText="true">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <Button layoutX="326.0" layoutY="255.0" mnemonicParsing="false" onAction="#onDialogConfirm" prefHeight="37.0" prefWidth="154.0" styleClass="buttonMain" text="Nu updaten" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="164.0" layoutY="255.0" mnemonicParsing="false" onAction="#onDialogConfirm" prefHeight="37.0" prefWidth="139.0" styleClass="buttonAlt" text="Later" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+               </children>
+            </AnchorPane>
             </children>
         </AnchorPane>
     </children>

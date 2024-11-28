@@ -4,7 +4,7 @@
 
 .buttonMain {
     -fx-background-color: #377542;
-    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
     -fx-cursor: hand;
 }
 
