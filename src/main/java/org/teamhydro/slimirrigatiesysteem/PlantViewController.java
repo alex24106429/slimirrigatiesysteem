@@ -3,10 +3,7 @@ package org.teamhydro.slimirrigatiesysteem;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.animation.FadeTransition;
-import javafx.util.Duration;
-
-import org.teamhydro.slimirrigatiesysteem.MainApplication.*;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -34,18 +31,24 @@ public class PlantViewController {
 
     @FXML
     private void showUserPopout() {
-        userPopout.setVisible(true);
+        MainApplication.fadeIn(userPopout, 200);
     }
 
     @FXML
     private void hideUserPopout() {
-        userPopout.setVisible(false);
+        MainApplication.fadeOut(userPopout, 200);
     }
 
     @FXML
-    private void logout() {
+    private void logout() throws IOException {
         hideUserPopout();
         System.out.println("logout() called");
+        MainApplication.switchView((Stage) urenMenu.getScene().getWindow(), "login-view.fxml");
+    }
+
+    @FXML
+    private void openUsersettings() throws IOException {
+        MainApplication.switchView((Stage) urenMenu.getScene().getWindow(), "usersettings-view.fxml");
     }
 
     @FXML
@@ -80,7 +83,7 @@ public class PlantViewController {
     }
 
     @FXML
-    private void onDialogConfirm() throws IOException {
+    private void onDialogConfirm() {
         MainApplication.fadeOut(updateOverlay, 200);
     }
 }

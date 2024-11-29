@@ -12,13 +12,26 @@ import javafx.util.Duration;
 import java.io.IOException;
 
 public class MainApplication extends Application {
-    @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("login-view.fxml"));
+
+    public static void switchView(Stage stage, String fxmlName) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
         Scene scene = new Scene(fxmlLoader.load(), 640, 400);
-        stage.setTitle("Inloggen - Slim Irrigatie Systeem");
+
+        String title = switch (fxmlName) {
+            case "login-view.fxml" -> "Inloggen";
+            case "plant-view.fxml" -> "Plant";
+            case "passwordrecovery-view.fxml" -> "Wachtwoord herstellen";
+            case "usersettings-view.fxml" -> "Gebruikers instellingen";
+            default -> "Onbekend";
+        };
+        stage.setTitle(title + " - Slim Irrigatie Systeem");
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
+        switchView(stage, "login-view.fxml");
         stage.setResizable(false);
     }
 

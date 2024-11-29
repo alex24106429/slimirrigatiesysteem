@@ -20,7 +20,7 @@
                   <Image url="@icons/user.png" />
                </image>
             </ImageView>
-            <Button fx:id="backButton" layoutX="315.0" layoutY="332.0" mnemonicParsing="false" onAction="#handleBackButton" prefHeight="37.0" prefWidth="128.0" styleClass="buttonAlt" text="Terug">
+            <Button fx:id="backButton" layoutX="331.0" layoutY="332.0" mnemonicParsing="false" onAction="#handleBackButton" prefHeight="37.0" prefWidth="128.0" styleClass="buttonAlt" text="Terug">
                <font>
                   <Font size="18.0" />
                </font>
@@ -38,48 +38,48 @@
                     </font>
                 </Label>
 
-                <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="162.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+                <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="331.0" layoutY="172.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
 
-                <TextField fx:id="emailField" layoutX="393.0" layoutY="170.0" prefHeight="43.0" prefWidth="221.0" promptText="Email adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+                <TextField fx:id="emailField" layoutX="400.0" layoutY="180.0" prefHeight="43.0" prefWidth="221.0" promptText="Email adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
                     <font>
                         <Font size="15.0" />
                     </font>
                 </TextField>
 
-                <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="174.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="349.0" layoutY="184.0" pickOnBounds="true" preserveRatio="true">
                     <image>
                         <Image url="@icons/mail.png" />
                     </image>
                 </ImageView>
-            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="227.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
-            <TextField fx:id="emailField1" layoutX="393.0" layoutY="235.0" prefHeight="43.0" prefWidth="221.0" promptText="Wachtwoord" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="331.0" layoutY="237.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField1" layoutX="400.0" layoutY="245.0" prefHeight="43.0" prefWidth="221.0" promptText="Wachtwoord" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
                <font>
                   <Font size="15.0" />
                </font>
             </TextField>
-            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="239.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="349.0" layoutY="249.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/key.png" />
                </image>
             </ImageView>
-            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="34.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
-            <TextField fx:id="emailField2" layoutX="393.0" layoutY="42.0" prefHeight="43.0" prefWidth="221.0" promptText="Naam" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="331.0" layoutY="44.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField2" layoutX="400.0" layoutY="52.0" prefHeight="43.0" prefWidth="221.0" promptText="Naam" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
                <font>
                   <Font size="15.0" />
                </font>
             </TextField>
-            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="349.0" layoutY="56.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/user.png" />
                </image>
             </ImageView>
-            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="324.0" layoutY="99.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
-            <TextField fx:id="emailField21" layoutX="393.0" layoutY="107.0" prefHeight="43.0" prefWidth="221.0" promptText="Adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+            <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="331.0" layoutY="109.0" stroke="#cccccc" strokeType="INSIDE" width="301.0" />
+            <TextField fx:id="emailField21" layoutX="400.0" layoutY="117.0" prefHeight="43.0" prefWidth="221.0" promptText="Adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
                <font>
                   <Font size="15.0" />
                </font>
             </TextField>
-            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="342.0" layoutY="111.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="349.0" layoutY="121.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/map-pin.png" />
                </image>

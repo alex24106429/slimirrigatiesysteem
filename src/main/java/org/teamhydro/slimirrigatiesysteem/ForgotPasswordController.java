@@ -1,5 +1,6 @@
 package org.teamhydro.slimirrigatiesysteem;
 
+import com.sun.tools.javac.Main;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -27,13 +28,7 @@ public class ForgotPasswordController {
     }
 
     private void switchToLoginPage() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("login-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
-
-        currentStage = (Stage) recoveryButton.getScene().getWindow();
-        currentStage.setScene(scene);
-        currentStage.setTitle("Inloggen - Slim Irrigatie Systeem");
-        currentStage.show();
+        MainApplication.switchView((Stage) recoveryButton.getScene().getWindow(), "login-view.fxml");
     }
 
     @FXML

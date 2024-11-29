@@ -62,7 +62,7 @@ public class LoginController {
     }
 
     @FXML
-    private void onDialogConfirm() throws IOException {
+    private void onDialogConfirm() {
         invalidLoginOverlay.setVisible(false);
     }
 
@@ -84,12 +84,6 @@ public class LoginController {
     }
 
     private void switchToForgotPasswordView() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("passwordrecovery-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
-
-        currentStage = (Stage) loginButton.getScene().getWindow();
-        currentStage.setScene(scene);
-        currentStage.setTitle("Wachtwoord vergeten - Slim Irrigatie Systeem");
-        currentStage.show();
+        MainApplication.switchView((Stage) loginButton.getScene().getWindow(), "passwordrecovery-view.fxml");
     }
 }
