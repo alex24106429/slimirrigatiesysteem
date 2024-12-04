@@ -20,8 +20,8 @@ public class MainApplication extends Application {
         String title = switch (fxmlName) {
             case "login-view.fxml" -> "Inloggen";
             case "plant-view.fxml" -> "Plant";
-            case "passwordrecovery-view.fxml" -> "Wachtwoord herstellen";
-            case "usersettings-view.fxml" -> "Gebruikers instellingen";
+            case "passwordrecovery-view.fxml" -> "Wachtwoord Herstellen";
+            case "userinfo-view.fxml" -> "Uw Gegevens";
             default -> "Onbekend";
         };
         stage.setTitle(title + " - Slim Irrigatie Systeem");
@@ -37,6 +37,36 @@ public class MainApplication extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    private static String name = "Naam";
+
+    public static String getName() {
+        return name;
+    }
+
+    public static void setName(String newName) {
+        name = newName;
+    }
+
+    private static String email = "test@example.com";
+
+    public static String getEmail() {
+        return email;
+    }
+
+    public static void setEmail(String newEmail) {
+        email = newEmail;
+    }
+
+    public static String address = "Sesamstraat";
+
+    public static String getAddress() {
+        return address;
+    }
+
+    public static void setAddress(String newAddress) {
+        address = newAddress;
     }
 
     @FXML

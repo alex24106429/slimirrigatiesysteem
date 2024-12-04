@@ -31,7 +31,7 @@
 
                 <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="332.0" layoutY="125.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="301.0" />
 
-                <TextField fx:id="usernameField" layoutX="401.0" layoutY="133.0" prefHeight="43.0" prefWidth="221.0" promptText="Gebruikersnaam" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
+                <TextField fx:id="emailField" layoutX="401.0" layoutY="133.0" prefHeight="43.0" prefWidth="221.0" promptText="Email adres" style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5px;">
                     <font>
                         <Font size="15.0" />
                     </font>
@@ -39,7 +39,7 @@
 
                 <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="350.0" layoutY="137.0" pickOnBounds="true" preserveRatio="true">
                     <image>
-                        <Image url="@icons/user.png" />
+                        <Image url="@icons/mail.png" />
                     </image>
                 </ImageView>
             <Rectangle arcHeight="20.0" arcWidth="20.0" fill="WHITE" height="58.0" layoutX="332.0" layoutY="189.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="301.0" />
@@ -61,7 +61,7 @@
             <Button fx:id="forgotPasswordButton" layoutX="406.0" layoutY="262.0" mnemonicParsing="false" onAction="#handleForgotPasswordButton" styleClass="buttonAlt" text="Wachtwoord vergeten" />
             <AnchorPane fx:id="invalidLoginOverlay" prefHeight="400.0" prefWidth="640.0" visible="false">
                <children>
-                  <Rectangle fill="#00000080" height="400.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
+                  <Rectangle fill="#00000080" height="400.0" onMousePressed="#onDialogConfirm" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
                   <Rectangle arcHeight="15.0" arcWidth="15.0" fill="WHITE" height="246.0" layoutX="133.0" layoutY="77.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="374.0" />
                   <ImageView fitHeight="48.0" fitWidth="48.0" layoutX="296.0" layoutY="120.0" pickOnBounds="true" preserveRatio="true">
                      <image>

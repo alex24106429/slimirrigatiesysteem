@@ -15,12 +15,6 @@ public class ForgotPasswordController {
     @FXML
     private TextField emailField;
 
-    @FXML
-    private Button recoveryButton;
-
-    @FXML
-    private Stage currentStage;
-
     // This method is called to initialize the controller
     @FXML
     public void initialize() {
@@ -28,7 +22,7 @@ public class ForgotPasswordController {
     }
 
     private void switchToLoginPage() throws IOException {
-        MainApplication.switchView((Stage) recoveryButton.getScene().getWindow(), "login-view.fxml");
+        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "login-view.fxml");
     }
 
     @FXML

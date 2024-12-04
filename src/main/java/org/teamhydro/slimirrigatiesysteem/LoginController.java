@@ -13,16 +13,10 @@ import java.io.IOException;
 public class LoginController {
 
     @FXML
-    private TextField usernameField;
+    private TextField emailField;
 
     @FXML
     private TextField passwordField;
-
-    @FXML
-    private Button forgotPasswordButton;
-
-    @FXML
-    private Button loginButton;
 
     @FXML
     private Stage currentStage;
@@ -39,20 +33,21 @@ public class LoginController {
     @FXML
     private void handleLoginButtonAction() throws IOException {
         // Retrieve the username and password entered in the TextFields
-        String username = usernameField.getText();
+        String email = emailField.getText();
         String password = passwordField.getText();
 
-        if (username.equals("") || password.equals("")) {
-            invalidLoginOverlay.setVisible(true);
+        if (email.equals("") || password.equals("")) {
+            MainApplication.fadeIn(invalidLoginOverlay, 200);
             return;
         }
 
         // TODO
-        System.out.println("Username: " + username);
+        System.out.println("Email: " + email);
         System.out.println("Password: " + password);
 
-        // After a successful login, switch to the plant view and set the username
-        switchToPlantView(username);
+        MainApplication.setEmail(email);
+
+        switchToPlantView();
     }
 
     @FXML
@@ -63,27 +58,15 @@ public class LoginController {
 
     @FXML
     private void onDialogConfirm() {
-        invalidLoginOverlay.setVisible(false);
+        MainApplication.fadeOut(invalidLoginOverlay, 100);
     }
 
     // Switch to the plant view and set the username
-    private void switchToPlantView(String username) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("plant-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
-
-        // Get the current stage and switch the scene
-        currentStage = (Stage) loginButton.getScene().getWindow();
-        currentStage.setScene(scene);
-        currentStage.setTitle("Plant - Slim Irrigatie Systeem");
-
-        // Get the PlantViewController and set the username
-        PlantViewController plantViewController = fxmlLoader.getController();
-        plantViewController.setUsername(username);
-
-        currentStage.show();
+    private void switchToPlantView() throws IOException {
+        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "plant-view.fxml");
     }
 
     private void switchToForgotPasswordView() throws IOException {
-        MainApplication.switchView((Stage) loginButton.getScene().getWindow(), "passwordrecovery-view.fxml");
+        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "passwordrecovery-view.fxml");
     }
 }
