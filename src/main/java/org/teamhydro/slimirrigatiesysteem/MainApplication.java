@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.Random;
 
 public class MainApplication extends Application {
 
@@ -35,7 +36,28 @@ public class MainApplication extends Application {
         stage.setResizable(false);
     }
 
+    public static int getRandomInt(int min, int max) {
+        // Create a Random object
+        Random rand = new Random();
+
+        // Generate a random integer between min and max (inclusive)
+        return rand.nextInt(max - min + 1) + min;
+    }
+
+    static Plant[] plants = new Plant[100];
+
+    public static Plant getPlantByName(String name) {
+        for(Plant plant: plants) {
+            if (plant.getName().equals(name)) return plant;
+        }
+
+        return null;
+    }
+
     public static void main(String[] args) {
+        for (int i = 0; i < plants.length; i++) {
+            plants[i] = new Plant("Plant " + i, Math.random() > 0.5, getRandomInt(0, 100), getRandomInt(50, 300), getRandomInt(0, 1023), getRandomInt(0, 1023));
+        }
         launch();
     }
 

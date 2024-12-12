@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SplitMenuButton?>
@@ -18,21 +19,9 @@
         <AnchorPane id="anchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
             <children>
                 <Rectangle fill="WHITE" height="50.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
-
-                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="201.0" layoutY="9.0" pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@icons/arrow-left.png" />
-                    </image>
-                </ImageView>
-
-                <Label alignment="CENTER" layoutX="290.0" layoutY="10.0" text="Plant 1" textAlignment="CENTER" wrapText="false">
-                    <font>
-                        <Font size="22.0" />
-                    </font>
-                </Label>
-            <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="411.0" layoutY="9.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="14.0" layoutY="9.0" onMouseClicked="#showSearchDialog" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@icons/arrow-right.png" />
+                  <Image url="@icons/search.png" />
                </image>
             </ImageView>
 
@@ -60,7 +49,7 @@
                     </font>
                 </SplitMenuButton>
 
-                <ImageView fitHeight="34.0" fitWidth="39.0" layoutX="592.0" layoutY="9.0" onMouseClicked="#showUserPopout" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="592.0" layoutY="9.0" onMouseClicked="#showUserPopout" pickOnBounds="true" preserveRatio="true">
                     <image>
                         <Image url="@icons/user.png" />
                     </image>
@@ -92,13 +81,14 @@
                   <Image url="@./icons/droplet-small-blue.png" />
                </image>
             </ImageView>
-            <ProgressBar layoutX="73.0" layoutY="313.0" prefWidth="200.0" progress="0.8" />
+            <ProgressBar fx:id="moistureBar" layoutX="73.0" layoutY="313.0" prefWidth="200.0" progress="0.8" />
 
                 <Button fx:id="startButton" layoutX="382.0" layoutY="302.0" mnemonicParsing="false" onAction="#handleStartButtonAction" prefHeight="38.0" prefWidth="177.0" styleClass="buttonMain" text="Start" textAlignment="CENTER" textFill="WHITE">
                     <font>
                         <Font size="20.0" />
                     </font>
                 </Button>
+            <Rectangle id="noPlantOverlay" fx:id="noPlantOverlay" height="350.0" layoutY="50.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
             <AnchorPane fx:id="userPopout" prefHeight="400.0" prefWidth="640.0" visible="false">
                <children>
                   <Rectangle fill="#00000080" height="400.0" onMousePressed="#hideUserPopout" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
@@ -155,6 +145,23 @@
                   </Button>
                </children>
             </AnchorPane>
+            <AnchorPane fx:id="searchOverlay" prefHeight="400.0" prefWidth="640.0" visible="false">
+               <children>
+                  <Rectangle fill="#00000080" height="400.0" onMousePressed="#hideSearchDialog" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="640.0" />
+                  <Rectangle arcHeight="15.0" arcWidth="15.0" fill="WHITE" height="300.0" layoutX="170.0" layoutY="50.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="300.0" />
+                  <TextField fx:id="plantSearchBar" layoutX="186.0" layoutY="65.0" onKeyTyped="#onPlantSearchKeypress" prefHeight="40.0" prefWidth="268.0" promptText="Zoek planten...">
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </TextField>
+                  <ListView fx:id="searchListView" layoutX="186.0" layoutY="113.0" onMouseClicked="#onSearchConfirm" prefHeight="222.0" prefWidth="268.0" />
+               </children>
+            </AnchorPane>
+            <Label fx:id="plantNameLabel" alignment="CENTER" layoutX="60.0" layoutY="14.0" prefHeight="25.0" prefWidth="520.0" text="Plant Name Placeholder" textAlignment="CENTER">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
             </children>
         </AnchorPane>
     </children>

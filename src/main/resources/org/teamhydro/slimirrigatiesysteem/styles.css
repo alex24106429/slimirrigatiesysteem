@@ -1,5 +1,6 @@
-#anchorPane {
+#anchorPane, #noPlantOverlay {
     -fx-background-color:  #dbf3dd;
+    -fx-fill:  #dbf3dd;
 }
 
 .buttonMain {

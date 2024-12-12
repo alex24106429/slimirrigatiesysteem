@@ -1,8 +1,10 @@
 package org.teamhydro.slimirrigatiesysteem;
 
+import com.sun.tools.javac.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -31,6 +33,86 @@ public class PlantViewController {
     private AnchorPane updateOverlay;
 
     @FXML
+    private TextField plantSearchBar;
+
+    @FXML
+    private AnchorPane searchOverlay;
+
+    @FXML
+    private ListView searchListView;
+
+    @FXML
+    private Label plantNameLabel;
+
+    @FXML
+    private ProgressBar moistureBar;
+
+    @FXML
+    private Rectangle noPlantOverlay;
+
+    @FXML
+    private void showSearchDialog() {
+        plantSearchBar.setText("");
+        searchListView.getItems().clear();
+
+        for (Plant plant : MainApplication.plants) {
+            if (plant != null) {
+                searchListView.getItems().add(plant.getName());
+            }
+        }
+
+        MainApplication.fadeIn(searchOverlay, 200);
+    }
+
+    @FXML
+    private void hideSearchDialog() {
+        MainApplication.fadeOut(searchOverlay, 100);
+    }
+
+    @FXML
+    private void onPlantSearchKeypress() {
+        searchListView.getItems().clear();
+
+        String text = plantSearchBar.getText().toLowerCase();
+
+        // Filter plants based on search text and add matching plants to ListView
+        for (Plant plant : MainApplication.plants) {
+            if (plant != null && plant.getName().toLowerCase().contains(text)) {
+                searchListView.getItems().add(plant.getName());
+            }
+        }
+    }
+
+    @FXML
+    private void loadPlant(String name, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
+        plantNameLabel.setText(name);
+
+        if(useDays) {
+            handleDagenMenuItemAction();
+        } else {
+            handleUrenMenuItemAction();
+        }
+
+        tijdTextField.setText(String.valueOf(delay));
+        waterOutputField.setText(String.valueOf(outputML));
+
+        moistureBar.setProgress((double) currentMoistureLevel / 1024);
+
+        noPlantOverlay.setVisible(false);
+    }
+
+    @FXML
+    private void onSearchConfirm() {
+        String chosenPlantName = (String) searchListView.getSelectionModel().getSelectedItem();
+
+        Plant chosenPlant = MainApplication.getPlantByName(chosenPlantName);
+
+        loadPlant(chosenPlantName, chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
+
+        hideSearchDialog();
+    }
+
+    @FXML
     private void showUserPopout() {
         MainApplication.fadeIn(userPopout, 200);
     }
@@ -53,13 +135,16 @@ public class PlantViewController {
 
     @FXML
     public void initialize() {
+        noPlantOverlay.setVisible(true);
         userPopout.setVisible(false);
         updateOverlay.setVisible(false);
 
         nameText.setText(MainApplication.getName());
         emailText.setText(MainApplication.getEmail());
 
-        MainApplication.fadeIn(updateOverlay, 200);
+//        MainApplication.fadeIn(updateOverlay, 200);
+
+        plantNameLabel.setText("Selecteer een plant");
 
         System.out.println("Plant View Controller initialized.");
     }
