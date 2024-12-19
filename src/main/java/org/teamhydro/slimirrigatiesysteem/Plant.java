@@ -3,6 +3,7 @@ package org.teamhydro.slimirrigatiesysteem;
 public class Plant {
     private int plantId;
     private String name;
+    private String plantType;
     private boolean useDays;
     private int delay;
     private int outputML;
@@ -10,9 +11,10 @@ public class Plant {
     private int currentMoistureLevel;
 
     // Constructor
-    public Plant(String name, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
+    public Plant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
         this.plantId = MainApplication.getRandomInt(0, Integer.MAX_VALUE - 1);
         this.name = name;
+        this.plantType = plantType; // "african_violet", "hedgehog_cactus", "monstera", "pothos", "zz_plant", "aloe_vera", "jasmine", "orchid", "rosemary", "english_ivy", "lavender", "peace_lily", "snake_plant", "fiddle_leaf_fig", "mexican_fence_post_cactus", "philodendron", "spider_plant"
         this.useDays = useDays;
         this.delay = delay;
         this.outputML = outputML;
@@ -35,6 +37,14 @@ public class Plant {
 
     public void setName(String name) {
         this.name = name;  // Setter for name
+    }
+
+    public String getPlantType() {
+        return plantType;  // Getter for plantType
+    }
+
+    public void setPlantType(String plantType) {
+        this.plantType = plantType;  // Setter for plantType
     }
 
     public boolean isUseDays() {

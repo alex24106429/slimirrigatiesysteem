@@ -56,7 +56,7 @@ public class MainApplication extends Application {
 
     public static void main(String[] args) {
         for (int i = 0; i < plants.length; i++) {
-            plants[i] = new Plant("Plant " + i, Math.random() > 0.5, getRandomInt(0, 100), getRandomInt(50, 300), getRandomInt(0, 1023), getRandomInt(0, 1023));
+            plants[i] = new Plant("Plant " + i, "lavender", Math.random() > 0.5, getRandomInt(0, 100), getRandomInt(50, 300), getRandomInt(0, 1023), getRandomInt(0, 1023));
         }
         launch();
     }

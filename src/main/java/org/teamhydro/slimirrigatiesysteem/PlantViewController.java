@@ -3,6 +3,8 @@ package org.teamhydro.slimirrigatiesysteem;
 import com.sun.tools.javac.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -51,6 +53,9 @@ public class PlantViewController {
     private Rectangle noPlantOverlay;
 
     @FXML
+    private ImageView plantImage;
+
+    @FXML
     private void showSearchDialog() {
         plantSearchBar.setText("");
         searchListView.getItems().clear();
@@ -84,7 +89,7 @@ public class PlantViewController {
     }
 
     @FXML
-    private void loadPlant(String name, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
+    private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
         plantNameLabel.setText(name);
 
         if(useDays) {
@@ -98,6 +103,8 @@ public class PlantViewController {
 
         moistureBar.setProgress((double) currentMoistureLevel / 1024);
 
+//        plantImage.setImage(new Image("file:plantImages/" + plantType + ".png"));
+
         noPlantOverlay.setVisible(false);
     }
 
@@ -107,7 +114,7 @@ public class PlantViewController {
 
         Plant chosenPlant = MainApplication.getPlantByName(chosenPlantName);
 
-        loadPlant(chosenPlantName, chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
+        loadPlant(chosenPlantName, chosenPlant.getPlantType(), chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
 
         hideSearchDialog();
     }
