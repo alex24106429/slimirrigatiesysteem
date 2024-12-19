@@ -26,6 +26,25 @@ public class PlantRepository {
             return false;
         }
 
+        // Add the plant configuration to the database
+        query = """
+                    INSERT INTO plant_configs (PlantId, UseDays, Delay, OutputML, MinimumMoistureLevel)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
+
+        try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
+            statement.setInt(1, plant.getPlantId());
+            statement.setBoolean(2, plant.isUseDays());
+            statement.setInt(3, plant.getDelay());
+            statement.setInt(4, plant.getOutputML());
+            statement.setInt(5, plant.getMinimumMoistureLevel());
+
+            statement.executeUpdate();
+        } catch (Exception e) {
+            // TODO: Handle exception
+            return false;
+        }
+
         return true;
     }
 
