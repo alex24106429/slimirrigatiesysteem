@@ -10,6 +10,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 public class PlantViewController {
 
@@ -60,9 +61,15 @@ public class PlantViewController {
         plantSearchBar.setText("");
         searchListView.getItems().clear();
 
-        for (Plant plant : MainApplication.plants) {
-            if (plant != null) {
-                searchListView.getItems().add(plant.getName());
+        // Limit results to 10
+        if (MainApplication.plants.length == 0) {
+            MainApplication.fadeIn(searchOverlay, 200);
+            return;
+        }
+
+        for (int i = 0; i < 10; i++) {
+            if (MainApplication.plants[i] != null) {
+                searchListView.getItems().add(MainApplication.plants[i].getName());
             }
         }
 
@@ -81,10 +88,13 @@ public class PlantViewController {
         String text = plantSearchBar.getText().toLowerCase();
 
         // Filter plants based on search text and add matching plants to ListView
-        for (Plant plant : MainApplication.plants) {
-            if (plant != null && plant.getName().toLowerCase().contains(text)) {
-                searchListView.getItems().add(plant.getName());
+        int count = 0;
+        for (int i = 0; i < MainApplication.plants.length; i++) {
+            if (MainApplication.plants[i] != null && MainApplication.plants[i].getName().toLowerCase().contains(text)) {
+                searchListView.getItems().add(MainApplication.plants[i].getName());
+                count++;
             }
+            if (count == 10) break;
         }
     }
 

@@ -10,9 +10,30 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.util.Objects;
 import java.util.Random;
 
 public class MainApplication extends Application {
+
+    protected static Connection conn;
+
+    public static Connection getConnection() {
+        if (conn != null) return conn;
+
+        try {
+            // Get the local sqlite database
+            String url = "jdbc:sqlite:slimirrigatiesysteem.db";
+            conn = DriverManager.getConnection(url);
+            return conn;
+        } catch (Exception e) {
+            // Print the exception
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
 
     public static void switchView(Stage stage, String fxmlName) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
@@ -44,7 +65,7 @@ public class MainApplication extends Application {
         return rand.nextInt(max - min + 1) + min;
     }
 
-    static Plant[] plants = new Plant[100];
+    static Plant[] plants = Objects.requireNonNull(PlantRepository.getAllPlants()).toArray(new Plant[0]);
 
     public static Plant getPlantByName(String name) {
         for(Plant plant: plants) {
@@ -55,10 +76,51 @@ public class MainApplication extends Application {
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i < plants.length; i++) {
-            plants[i] = new Plant("Plant " + i, "lavender", Math.random() > 0.5, getRandomInt(0, 100), getRandomInt(50, 300), getRandomInt(0, 1023), getRandomInt(0, 1023));
-        }
+        // Set up the local database
+        setupLocalDatabase();
         launch();
+    }
+
+    private static void setupLocalDatabase() {
+        // Check if the connection is available
+        if (getConnection() == null) return;
+
+        // Create the database
+        String createPlantsTable = """
+                    CREATE TABLE IF NOT EXISTS plants (
+                        PlantId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        ShortName TEXT NOT NULL,
+                        Location TEXT NOT NULL
+                    )
+                """;
+
+        String createPlantConfigsTable = """
+                    CREATE TABLE IF NOT EXISTS plant_configs (
+                        PlantId INTEGER PRIMARY KEY,
+                        UseDays BOOLEAN NOT NULL,
+                        Delay INTEGER NOT NULL,
+                        OutputML INTEGER NOT NULL,
+                        MinimumMoistureLevel INTEGER NOT NULL
+                    )
+                """;
+
+        try (PreparedStatement statement = Objects.requireNonNull(getConnection()).prepareStatement(createPlantsTable)) {
+            statement.executeUpdate();
+        } catch (Exception e) {
+            // Print the exception
+            System.out.println(e.getMessage());
+        }
+
+        try (PreparedStatement statement = Objects.requireNonNull(getConnection()).prepareStatement(createPlantConfigsTable)) {
+            statement.executeUpdate();
+        } catch (Exception e) {
+            // Print the exception
+            System.out.println(e.getMessage());
+        }
+
+        // Print a success message
+        System.out.println("Database setup complete.");
     }
 
     private static String name = "Naam";
