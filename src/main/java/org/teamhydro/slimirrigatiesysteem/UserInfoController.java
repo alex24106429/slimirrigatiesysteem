@@ -1,9 +1,7 @@
 package org.teamhydro.slimirrigatiesysteem;
 
-import com.sun.tools.javac.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -27,12 +25,12 @@ public class UserInfoController {
 
     @FXML
     private void handleChangePasswordButton() throws IOException {
-        MainApplication.switchView((Stage) nameField.getScene().getWindow(), "passwordrecovery-view.fxml");
+        MainApplication.switchView("passwordrecovery-view.fxml");
     }
 
     @FXML
     private void handleBackButton() throws IOException {
-        MainApplication.switchView((Stage) nameField.getScene().getWindow(), "plant-view.fxml");
+        MainApplication.switchView("plant-view.fxml");
     }
 
     @FXML
@@ -41,7 +39,7 @@ public class UserInfoController {
         String address = addressField.getText();
         String email = emailField.getText();
 
-        // TODO
+        // TODO: Update user data on the server
         System.out.println(name);
         System.out.println(address);
         System.out.println(email);
@@ -50,6 +48,6 @@ public class UserInfoController {
         MainApplication.setAddress(address);
         MainApplication.setEmail(email);
 
-        MainApplication.switchView((Stage) nameField.getScene().getWindow(), "plant-view.fxml");
+        MainApplication.switchView("plant-view.fxml");
     }
 }

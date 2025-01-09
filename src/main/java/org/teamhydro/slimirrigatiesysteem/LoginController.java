@@ -1,9 +1,6 @@
 package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -41,7 +38,7 @@ public class LoginController {
             return;
         }
 
-        // TODO
+        // TODO: Authenticate with the server
         System.out.println("Email: " + email);
         System.out.println("Password: " + password);
 
@@ -63,10 +60,10 @@ public class LoginController {
 
     // Switch to the plant view and set the username
     private void switchToPlantView() throws IOException {
-        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "plant-view.fxml");
+        MainApplication.switchView("plant-view.fxml");
     }
 
     private void switchToForgotPasswordView() throws IOException {
-        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "passwordrecovery-view.fxml");
+        MainApplication.switchView("passwordrecovery-view.fxml");
     }
 }

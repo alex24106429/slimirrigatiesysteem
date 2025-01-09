@@ -5,7 +5,11 @@ import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.transform.Scale;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -35,25 +39,43 @@ public class MainApplication extends Application {
         }
     }
 
-    public static void switchView(Stage stage, String fxmlName) throws IOException {
+    public static void switchView(String fxmlName) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
-        Scene scene = new Scene(fxmlLoader.load(), 640, 400);
-
+        Parent root = fxmlLoader.load();
+    
+        // Define the scale factor as a variable
+        double scaleFactor = 1.411764705882353; // 48 / 34 (icons are 48px, but scaled to 34px, making this the optimal factor for high-res icons)
+    
+        // Create a Scale transformation
+        Scale scale = new Scale();
+        scale.setX(scaleFactor);  // Scale X by the scale factor
+        scale.setY(scaleFactor);  // Scale Y by the scale factor
+    
+        // Apply the transformation to the root node
+        root.getTransforms().add(scale);
+    
+        // Adjust the scene size based on the scale factor
+        Scene scene = new Scene(root, 640 * scaleFactor, 400 * scaleFactor);
+    
         String title = switch (fxmlName) {
             case "login-view.fxml" -> "Inloggen";
             case "plant-view.fxml" -> "Plant";
             case "passwordrecovery-view.fxml" -> "Wachtwoord Herstellen";
             case "userinfo-view.fxml" -> "Uw Gegevens";
+            case "create-plant-view.fxml" -> "Nieuwe plant";
             default -> "Onbekend";
         };
-        stage.setTitle(title + " - Slim Irrigatie Systeem");
-        stage.setScene(scene);
-        stage.show();
+        globalStage.setTitle(title + " - Slim Irrigatie Systeem");
+        globalStage.setScene(scene);
+        globalStage.show();
     }
+
+    public static Stage globalStage;
 
     @Override
     public void start(Stage stage) throws IOException {
-        switchView(stage, "login-view.fxml");
+        globalStage = stage;
+        switchView("login-view.fxml");
         stage.setResizable(false);
     }
 
@@ -89,19 +111,19 @@ public class MainApplication extends Application {
         String createPlantsTable = """
                     CREATE TABLE IF NOT EXISTS plants (
                         PlantId INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL,
-                        ShortName TEXT NOT NULL,
-                        Location TEXT NOT NULL
+                        Name TEXT NOT NULL
                     )
                 """;
 
         String createPlantConfigsTable = """
                     CREATE TABLE IF NOT EXISTS plant_configs (
                         PlantId INTEGER PRIMARY KEY,
+                        PlantType TEXT NOT NULL,
                         UseDays BOOLEAN NOT NULL,
                         Delay INTEGER NOT NULL,
                         OutputML INTEGER NOT NULL,
-                        MinimumMoistureLevel INTEGER NOT NULL
+                        MinimumMoistureLevel INTEGER NOT NULL,
+                        CurrentMoistureLevel INTEGER NOT NULL
                     )
                 """;
 
@@ -176,5 +198,13 @@ public class MainApplication extends Application {
         fadeIn.setDuration(Duration.millis(time));
 
         fadeIn.play();
+    }
+
+    public static void showAlert(AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

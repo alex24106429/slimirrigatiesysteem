@@ -1,12 +1,7 @@
 package org.teamhydro.slimirrigatiesysteem;
 
-import com.sun.tools.javac.Main;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -22,7 +17,7 @@ public class ForgotPasswordController {
     }
 
     private void switchToLoginPage() throws IOException {
-        MainApplication.switchView((Stage) emailField.getScene().getWindow(), "login-view.fxml");
+        MainApplication.switchView("login-view.fxml");
     }
 
     @FXML
@@ -34,7 +29,7 @@ public class ForgotPasswordController {
     private void handleRecoveryButtonAction() throws IOException {
         String email = emailField.getText();
 
-        // TODO
+        // TODO: Send recovery email
         System.out.println("Email: " + email);
 
         switchToLoginPage();

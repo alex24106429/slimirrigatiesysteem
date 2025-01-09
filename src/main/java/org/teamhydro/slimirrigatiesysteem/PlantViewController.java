@@ -1,28 +1,18 @@
 package org.teamhydro.slimirrigatiesysteem;
 
-import com.sun.tools.javac.Main;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.Connection;
+import java.io.InputStream;
 
 public class PlantViewController {
-
-    @FXML
-    private SplitMenuButton urenMenu;
-
-    @FXML
-    private TextField tijdTextField;
-
-    @FXML
-    private TextField waterOutputField;
-
     @FXML
     private AnchorPane userPopout;
 
@@ -36,13 +26,16 @@ public class PlantViewController {
     private AnchorPane updateOverlay;
 
     @FXML
+    private AnchorPane deleteOverlay;
+
+    @FXML
     private TextField plantSearchBar;
 
     @FXML
     private AnchorPane searchOverlay;
 
     @FXML
-    private ListView searchListView;
+    private ListView<String> searchListView;
 
     @FXML
     private Label plantNameLabel;
@@ -61,15 +54,15 @@ public class PlantViewController {
         plantSearchBar.setText("");
         searchListView.getItems().clear();
 
-        // Limit results to 10
-        if (MainApplication.plants.length == 0) {
+        // Check if plants array is null or empty
+        if (MainApplication.plants == null || MainApplication.plants.length == 0) {
             MainApplication.fadeIn(searchOverlay, 200);
             return;
         }
 
-        for (int i = 0; i < 10; i++) {
-            if (MainApplication.plants[i] != null) {
-                searchListView.getItems().add(MainApplication.plants[i].getName());
+        for (Plant plant : MainApplication.plants) {
+            if (plant != null) {
+                searchListView.getItems().add(plant.getName());
             }
         }
 
@@ -88,13 +81,10 @@ public class PlantViewController {
         String text = plantSearchBar.getText().toLowerCase();
 
         // Filter plants based on search text and add matching plants to ListView
-        int count = 0;
-        for (int i = 0; i < MainApplication.plants.length; i++) {
-            if (MainApplication.plants[i] != null && MainApplication.plants[i].getName().toLowerCase().contains(text)) {
-                searchListView.getItems().add(MainApplication.plants[i].getName());
-                count++;
+        for (Plant plant : MainApplication.plants) {
+            if (plant != null && plant.getName().toLowerCase().contains(text)) {
+                searchListView.getItems().add(plant.getName());
             }
-            if (count == 10) break;
         }
     }
 
@@ -102,29 +92,36 @@ public class PlantViewController {
     private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
         plantNameLabel.setText(name);
 
-        if(useDays) {
-            handleDagenMenuItemAction();
-        } else {
-            handleUrenMenuItemAction();
-        }
-
-        tijdTextField.setText(String.valueOf(delay));
-        waterOutputField.setText(String.valueOf(outputML));
-
         moistureBar.setProgress((double) currentMoistureLevel / 1024);
 
-//        plantImage.setImage(new Image("file:plantImages/" + plantType + ".png"));
+        // Corrected image loading
+        String imagePath = "/org/teamhydro/slimirrigatiesysteem/plantImages/" + plantType + ".png";
+        try (InputStream inputStream = getClass().getResourceAsStream(imagePath)) {
+            if (inputStream != null) {
+                Image image = new Image(inputStream);
+                plantImage.setImage(image);
+            } else {
+                System.err.println("Image not found: " + imagePath);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         noPlantOverlay.setVisible(false);
+    }
+
+    @FXML
+    private void loadPlantFromName(String plantName) {
+        Plant chosenPlant = MainApplication.getPlantByName(plantName);
+
+        loadPlant(plantName, chosenPlant.getPlantType(), chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
     }
 
     @FXML
     private void onSearchConfirm() {
         String chosenPlantName = (String) searchListView.getSelectionModel().getSelectedItem();
 
-        Plant chosenPlant = MainApplication.getPlantByName(chosenPlantName);
-
-        loadPlant(chosenPlantName, chosenPlant.getPlantType(), chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
+        loadPlantFromName(chosenPlantName);
 
         hideSearchDialog();
     }
@@ -141,82 +138,57 @@ public class PlantViewController {
 
     @FXML
     private void logout() throws IOException {
-        // TODO
-        MainApplication.switchView((Stage) urenMenu.getScene().getWindow(), "login-view.fxml");
+        // TODO: Logout logic
+        MainApplication.switchView("login-view.fxml");
     }
 
     @FXML
     private void openUsersettings() throws IOException {
-        MainApplication.switchView((Stage) urenMenu.getScene().getWindow(), "userinfo-view.fxml");
+        MainApplication.switchView("userinfo-view.fxml");
     }
 
     @FXML
-    public void initialize() {
+    public void unselectPlant() {
         noPlantOverlay.setVisible(true);
+        plantNameLabel.setText("Selecteer een plant");
+
+    }
+
+    @FXML
+    public void initialize() throws IOException {
         userPopout.setVisible(false);
         updateOverlay.setVisible(false);
 
         nameText.setText(MainApplication.getName());
         emailText.setText(MainApplication.getEmail());
 
-//        MainApplication.fadeIn(updateOverlay, 200);
+        unselectPlant();
 
-        plantNameLabel.setText("Selecteer een plant");
+        // Delay the call to openCreatePlantView until after the UI is fully initialized
+        Platform.runLater(() -> {
+            if (MainApplication.plants.length == 0) {
+                try {
+                    openCreatePlantView();
+                    MainApplication.showAlert(AlertType.INFORMATION, "Info", "Maak voor het gebruik eerst een plant aan.");
+                    return;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(MainApplication.plants.length == 1) {
+                Plant firstPlant = MainApplication.plants[0];
+                loadPlantFromName(firstPlant.getName());
+                return;
+            }
+            showSearchDialog();
+        });
 
         System.out.println("Plant View Controller initialized.");
     }
 
-    private boolean isValidAmount(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-        try {
-            int integer = Integer.parseInt(str);
-            return integer > 0 && integer <= 365;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-
-    // Handler for the Start button
     @FXML
-    private void handleStartButtonAction() {
-        String enteredTime = tijdTextField.getText();
-        String enteredWaterOutput = waterOutputField.getText();
-
-        if (enteredTime.isEmpty()) {
-            System.out.println("Please enter a time.");
-        } else {
-            if(isValidAmount(enteredTime)) {
-                // TODO
-                System.out.println("Entered time: " + enteredTime + " " + urenMenu.getText());
-            } else {
-                System.out.println("Please enter a valid time.");
-            }
-        }
-
-        if (enteredWaterOutput.isEmpty()) {
-            System.out.println("Please enter the water output.");
-        } else {
-            if(isValidAmount(enteredWaterOutput)) {
-                // TODO
-                System.out.println("Entered water output: " + enteredWaterOutput + " mL");
-            } else {
-                System.out.println("Please enter a valid water output.");
-            }
-        }
-    }
-
-    // Handlers for SplitMenuButton items
-    @FXML
-    private void handleUrenMenuItemAction() {
-        urenMenu.setText("Uren");
-    }
-
-    @FXML
-    private void handleDagenMenuItemAction() {
-        urenMenu.setText("Dagen");
+    public void openCreatePlantView() throws IOException {
+        MainApplication.switchView("create-plant-view.fxml");
     }
 
     @FXML
@@ -227,5 +199,35 @@ public class PlantViewController {
     @FXML
     private void onUpdateDialogConfirm() {
         MainApplication.fadeOut(updateOverlay, 100);
+    }
+
+    @FXML
+    private void openDeleteDialog() {
+        if(plantNameLabel.getText().equals("Selecteer een plant")) return;
+        MainApplication.fadeIn(deleteOverlay, 200);
+    }
+
+    @FXML
+    private void onDeleteDialogCancel() {
+        MainApplication.fadeOut(deleteOverlay, 100);
+    }
+
+    @FXML
+    private void onDeleteDialogConfirm() throws IOException {
+        PlantRepository.deletePlant(plantNameLabel.getText());
+        PlantRepository.refreshPlants();
+        initialize();
+        MainApplication.fadeOut(deleteOverlay, 100);
+    }
+
+    @FXML
+    private void editPlant() {
+        MainApplication.showAlert(AlertType.INFORMATION, "Edit Plant", "TODO");
+    }
+
+    @FXML
+    private void syncWithMicroBit() {
+        // TODO: Sync with the Micro:Bit
+        MainApplication.showAlert(AlertType.INFORMATION, "Sync with Micro:Bit", "TODO");
     }
 }

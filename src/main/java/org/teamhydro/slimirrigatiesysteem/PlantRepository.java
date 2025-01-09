@@ -10,29 +10,55 @@ public class PlantRepository {
 
     public static boolean addPlant(Plant plant) {
         // Add the plant to the database
-        String query = """
-                    INSERT INTO plants (Name, ShortName, Location)
-                    VALUES (?, ?, ?)
+        String insertPlantQuery = """
+                    INSERT INTO plants (Name)
+                    VALUES (?)
                 """;
-
-        try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
-            statement.setString(1, plant.getName());
-            statement.setString(2, plant.getPlantType());
-            statement.setString(3, "Living Room");
-
-            statement.executeUpdate();
+    
+        String insertConfigQuery = """
+                    INSERT INTO plant_configs (PlantId, PlantType, UseDays, Delay, OutputML, MinimumMoistureLevel, CurrentMoistureLevel)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+    
+        try (PreparedStatement plantStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(insertPlantQuery)) {
+            plantStatement.setString(1, plant.getName());
+            plantStatement.executeUpdate();
+    
+            // Retrieve the last inserted PlantId
+            try (PreparedStatement idStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement("SELECT last_insert_rowid()")) {
+                try (ResultSet generatedKeys = idStatement.executeQuery()) {
+                    if (generatedKeys.next()) {
+                        int plantId = generatedKeys.getInt(1);
+    
+                        // Insert the plant configuration
+                        try (PreparedStatement configStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(insertConfigQuery)) {
+                            configStatement.setInt(1, plantId);
+                            configStatement.setString(2, plant.getPlantType());
+                            configStatement.setBoolean(3, plant.isUseDays());
+                            configStatement.setInt(4, plant.getDelay());
+                            configStatement.setInt(5, plant.getOutputML());
+                            configStatement.setInt(6, plant.getMinimumMoistureLevel());
+                            configStatement.setInt(7, plant.getCurrentMoistureLevel());
+    
+                            configStatement.executeUpdate();
+                        }
+                    } else {
+                        throw new Exception("Failed to retrieve generated PlantId.");
+                    }
+                }
+            }
         } catch (Exception e) {
-            // TODO: Handle exception
+            System.out.println(e);
             return false;
         }
-
+    
         return true;
     }
 
     public static List<Plant> getAllPlants() {
         String query = """
-            SELECT p.Name, p.ShortName, p.Location,\s
-                   pc.UseDays, pc.Delay, pc.OutputML, pc.MinimumMoistureLevel\s
+            SELECT p.PlantId, p.Name,\s
+                   pc.plantType, pc.UseDays, pc.Delay, pc.OutputML, pc.MinimumMoistureLevel, pc.CurrentMoistureLevel\s
             FROM plants p
             JOIN plant_configs pc ON p.PlantId = pc.PlantId
        \s""";
@@ -42,48 +68,22 @@ public class PlantRepository {
         try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
+                    // int plantId = resultSet.getInt("PlantId");
                     String name = resultSet.getString("Name");
-                    String plantType = resultSet.getString("ShortName"); // Assuming `ShortName` acts as `plantType`.
+                    String plantType = resultSet.getString("plantType");
                     boolean useDays = resultSet.getBoolean("UseDays");
                     int delay = resultSet.getInt("Delay");
                     int outputML = resultSet.getInt("OutputML");
                     int minimumMoistureLevel = resultSet.getInt("MinimumMoistureLevel");
-                    int currentMoistureLevel = 0; // Set default or fetch if available.
+                    int currentMoistureLevel = resultSet.getInt("currentMoistureLevel");
 
                     Plant plant = new Plant(name, plantType, useDays, delay, outputML, minimumMoistureLevel, currentMoistureLevel);
                     plants.add(plant);
                 }
             }
         } catch (Exception e) {
-            // TODO: Handle exception
-            // For now return a list with dummy data
-            plants.add(new Plant(
-                    "African Violet",
-                    "african_violet",
-                    true,
-                    1,
-                    105,
-                    50,
-                    0
-            ));
-            plants.add(new Plant(
-                    "Hedgehog Cactus",
-                    "hedgehog_cactus",
-                    true,
-                    1,
-                    105,
-                    50,
-                    0
-            ));
-            plants.add(new Plant(
-                    "Monstera",
-                    "monstera",
-                    true,
-                    1,
-                    105,
-                    50,
-                    0
-            ));
+            System.out.println(e);
+            return plants;
         }
 
         System.out.println(plants);
@@ -93,46 +93,61 @@ public class PlantRepository {
     public static boolean updatePlant(Plant plant) {
         // Update the plant in the database
         String query = """
-            UPDATE plants p
-            JOIN plant_configs pc ON p.PlantId = pc.PlantId
-            SET pc.UseDays = ?, pc.Delay = ?, pc.OutputML = ?, pc.MinimumMoistureLevel = ?
-            WHERE p.Name = ?
+            UPDATE plant_configs
+            SET PlantType = ?, UseDays = ?, Delay = ?, OutputML = ?, MinimumMoistureLevel = ?
+            WHERE PlantId = (SELECT PlantId FROM plants WHERE Name = ?)
         """;
-
+    
         try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
-            statement.setBoolean(1, plant.isUseDays());
-            statement.setInt(2, plant.getDelay());
-            statement.setInt(3, plant.getOutputML());
-            statement.setInt(4, plant.getMinimumMoistureLevel());
-            statement.setString(5, plant.getName());
-
+            statement.setString(1, plant.getPlantType());
+            statement.setBoolean(2, plant.isUseDays());
+            statement.setInt(3, plant.getDelay());
+            statement.setInt(4, plant.getOutputML());
+            statement.setInt(5, plant.getMinimumMoistureLevel());
+            statement.setString(6, plant.getName());
+    
             statement.executeUpdate();
         } catch (Exception e) {
-            // TODO: Handle exception
+            System.out.println(e);
             return false;
         }
-
+    
         return true;
     }
 
-    public static boolean deletePlant(Plant plant) {
-        // Delete the plant (and its configuration) from the database
-        String query = """
-            DELETE p, pc
-            FROM plants p
-            JOIN plant_configs pc ON p.PlantId = pc.PlantId
-            WHERE p.Name = ?
+    public static boolean deletePlant(String plantName) {
+        // First, delete the plant configuration
+        String deleteConfigQuery = """
+            DELETE FROM plant_configs
+            WHERE PlantId = (SELECT PlantId FROM plants WHERE Name = ?)
         """;
-
-        try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
-            statement.setString(1, plant.getName());
-
-            statement.executeUpdate();
+    
+        // Then, delete the plant
+        String deletePlantQuery = """
+            DELETE FROM plants
+            WHERE Name = ?
+        """;
+    
+        try (PreparedStatement configStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(deleteConfigQuery);
+             PreparedStatement plantStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(deletePlantQuery)) {
+    
+            // Delete the plant configuration
+            configStatement.setString(1, plantName);
+            configStatement.executeUpdate();
+    
+            // Delete the plant
+            plantStatement.setString(1, plantName);
+            plantStatement.executeUpdate();
+    
         } catch (Exception e) {
-            // TODO: Handle exception
+            System.out.println(e);
             return false;
         }
-
+    
         return true;
+    }
+
+    public static void refreshPlants() {
+        MainApplication.plants = getAllPlants().toArray(new Plant[0]);
     }
 }
