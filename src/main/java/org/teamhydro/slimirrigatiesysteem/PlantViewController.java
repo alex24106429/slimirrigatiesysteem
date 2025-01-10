@@ -121,9 +121,11 @@ public class PlantViewController {
     private void onSearchConfirm() {
         String chosenPlantName = (String) searchListView.getSelectionModel().getSelectedItem();
 
-        loadPlantFromName(chosenPlantName);
+        if(chosenPlantName != null) {
+            loadPlantFromName(chosenPlantName);
 
-        hideSearchDialog();
+            hideSearchDialog();
+        }
     }
 
     @FXML

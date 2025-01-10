@@ -23,6 +23,22 @@
                   <Image url="@icons/search.png" />
                </image>
             </ImageView>
+
+                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="64.0" layoutY="9.0" onMouseClicked="#showUserPopout" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@icons/user.png" />
+                    </image>
+                </ImageView>
+            <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="114.0" layoutY="9.0" onMouseClicked="#syncWithMicroBit" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@icons/sync.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="plantNameLabel" alignment="CENTER" layoutX="150.0" layoutY="14.0" prefHeight="25.0" prefWidth="340.0" text="Plant Name Placeholder" textAlignment="CENTER">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
             <ImageView fitHeight="34.0" fitWidth="48.0" layoutX="492.0" layoutY="9.0" onMouseClicked="#openCreatePlantView" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@icons/plus.png" />
@@ -39,20 +55,9 @@
                </image>
             </ImageView>
 
-                <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="64.0" layoutY="9.0" onMouseClicked="#showUserPopout" pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@icons/user.png" />
-                    </image>
-                </ImageView>
-            <Label fx:id="plantNameLabel" alignment="CENTER" layoutX="150.0" layoutY="14.0" prefHeight="25.0" prefWidth="340.0" text="Plant Name Placeholder" textAlignment="CENTER">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Label>
-
                 <ImageView fx:id="plantImage" fitHeight="200.0" layoutX="220.0" layoutY="70.0" pickOnBounds="true" preserveRatio="true">
                     <image>
-                        <Image url="@icons/plant.png" />
+                        <Image url="@plantImages/philodendron.png" />
                     </image>
                <viewport>
                   <Rectangle2D height="1024.0" width="1024.0" />
@@ -159,11 +164,6 @@
                   </Button>
                </children>
             </AnchorPane>
-            <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="114.0" layoutY="9.0" onMouseClicked="#syncWithMicroBit" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@icons/sync.png" />
-               </image>
-            </ImageView>
             </children>
         </AnchorPane>
     </children>
