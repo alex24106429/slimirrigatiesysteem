@@ -39,7 +39,7 @@ public class MainApplication extends Application {
         }
     }
 
-    public static void switchView(String fxmlName) throws IOException {
+    public static FXMLLoader switchView(String fxmlName) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
         Parent root = fxmlLoader.load();
     
@@ -68,6 +68,8 @@ public class MainApplication extends Application {
         globalStage.setTitle(title + " - Slim Irrigatie Systeem");
         globalStage.setScene(scene);
         globalStage.show();
+
+        return fxmlLoader;
     }
 
     public static Stage globalStage;

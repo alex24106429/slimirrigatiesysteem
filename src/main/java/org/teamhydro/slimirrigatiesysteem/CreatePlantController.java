@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
@@ -14,6 +15,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class CreatePlantController implements Initializable {
+
+    @FXML
+    private Label titleText;
 
     @FXML
     private MenuItem dagenMenuItem;
@@ -97,6 +101,23 @@ public class CreatePlantController implements Initializable {
         }
     }
 
+    private Plant originalPlant;
+
+    public void loadPlantData(String plantName) {
+        titleText.setText("Plant Bewerken");
+        MainApplication.globalStage.setTitle("Plant Bewerken - Slim Irrigatie Systeem");
+        
+        originalPlant = MainApplication.getPlantByName(plantName);
+        if (originalPlant != null) {
+            nameField.setText(originalPlant.getName());
+            plantTypeChoiceBox.setValue(originalPlant.getPlantType());
+            hourDay.setText(originalPlant.isUseDays() ? "Dagen" : "Uren");
+            timeTextField.setText(String.valueOf(originalPlant.getDelay()));
+            waterOutputField.setText(String.valueOf(originalPlant.getOutputML()));
+            minimumWaterField.setText(String.valueOf(originalPlant.getMinimumMoistureLevel()));
+        }
+    }
+
     @FXML
     void savePlant(ActionEvent event) throws IOException {
         try {
@@ -123,11 +144,24 @@ public class CreatePlantController implements Initializable {
                 throw new IllegalArgumentException("Minimum moisture level cannot be negative.");
             }
 
+            // Check for duplicate plant names
+            for (Plant plant : MainApplication.plants) {
+                if (plant.getName().equalsIgnoreCase(name) && (originalPlant == null || !originalPlant.getName().equals(name))) {
+                    throw new IllegalArgumentException("Een plant met deze naam bestaat al.");
+                }
+            }
+
+
             // Create a new Plant object
             Plant newPlant = new Plant(name, plantType, useDays, delay, outputML, minimumMoistureLevel, currentMoistureLevel);
 
-            // Call the addPlant function to save the plant to the database
-            boolean success = PlantRepository.addPlant(newPlant);
+            // Determine if we are updating an existing plant or creating a new one
+            boolean success;
+            if (originalPlant != null) {
+                success = PlantRepository.updatePlant(newPlant, originalPlant.getName());
+            } else {
+                success = PlantRepository.addPlant(newPlant);
+            }
 
             // Show a success or error message based on the result
             if (success) {

@@ -1,7 +1,9 @@
 package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
@@ -223,8 +225,12 @@ public class PlantViewController {
     }
 
     @FXML
-    private void editPlant() {
-        MainApplication.showAlert(AlertType.INFORMATION, "Edit Plant", "TODO");
+    private void editPlant() throws IOException {
+        String currentPlantName = plantNameLabel.getText();
+        if(currentPlantName.equals("Selecteer een plant")) return;
+        FXMLLoader loader = MainApplication.switchView("create-plant-view.fxml");
+        CreatePlantController controller = loader.getController();
+        controller.loadPlantData(currentPlantName);
     }
 
     @FXML

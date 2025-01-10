@@ -90,23 +90,37 @@ public class PlantRepository {
         return plants;
     }
 
-    public static boolean updatePlant(Plant plant) {
+    public static boolean updatePlant(Plant plant, String originalName) {
         // Update the plant in the database
-        String query = """
+        String updatePlantQuery = """
+            UPDATE plants
+            SET Name = ?
+            WHERE Name = ?
+        """;
+    
+        String updateConfigQuery = """
             UPDATE plant_configs
             SET PlantType = ?, UseDays = ?, Delay = ?, OutputML = ?, MinimumMoistureLevel = ?
             WHERE PlantId = (SELECT PlantId FROM plants WHERE Name = ?)
         """;
     
-        try (PreparedStatement statement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(query)) {
-            statement.setString(1, plant.getPlantType());
-            statement.setBoolean(2, plant.isUseDays());
-            statement.setInt(3, plant.getDelay());
-            statement.setInt(4, plant.getOutputML());
-            statement.setInt(5, plant.getMinimumMoistureLevel());
-            statement.setString(6, plant.getName());
+        try (PreparedStatement plantStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(updatePlantQuery);
+             PreparedStatement configStatement = Objects.requireNonNull(MainApplication.getConnection()).prepareStatement(updateConfigQuery)) {
     
-            statement.executeUpdate();
+            // Update the plant name
+            plantStatement.setString(1, plant.getName());
+            plantStatement.setString(2, originalName);
+            plantStatement.executeUpdate();
+    
+            // Update the plant configuration
+            configStatement.setString(1, plant.getPlantType());
+            configStatement.setBoolean(2, plant.isUseDays());
+            configStatement.setInt(3, plant.getDelay());
+            configStatement.setInt(4, plant.getOutputML());
+            configStatement.setInt(5, plant.getMinimumMoistureLevel());
+            configStatement.setString(6, plant.getName());
+    
+            configStatement.executeUpdate();
         } catch (Exception e) {
             System.out.println(e);
             return false;
