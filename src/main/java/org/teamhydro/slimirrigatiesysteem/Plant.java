@@ -2,6 +2,8 @@ package org.teamhydro.slimirrigatiesysteem;
 
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class Plant {
     private int plantId;
     private String name;
@@ -29,7 +31,8 @@ public class Plant {
     public void refreshFromArduino() {
         MainApplication.sendDataToArduino("fetch");
         String response = MainApplication.receiveDataFromArduino();
-        assert response != null;
+        // Assert that the response is in the correct format (JSON)
+        assert Objects.requireNonNull(response).startsWith("{") && response.endsWith("}");
 
         // {"delayTime":"1","shouldUseDays":"false","needsWater":"false","totalDelayMs":"0","currentDelay":"0","moistureLevel":"0","status":"Fetching latest data"}
         JSONObject jsonResponse = new JSONObject(response);

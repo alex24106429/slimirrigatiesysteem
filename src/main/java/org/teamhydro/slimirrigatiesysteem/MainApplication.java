@@ -127,6 +127,10 @@ public class MainApplication extends Application {
         // Check if the connection is available
         if (getDatabaseConnection() == null) return;
 
+        // Drop everything
+        String dropPlantsTable = "DROP TABLE IF EXISTS plants";
+        String dropPlantConfigsTable = "DROP TABLE IF EXISTS plant_configs";
+
         // Create the database
         String createPlantsTable = """
                     CREATE TABLE IF NOT EXISTS plants (
@@ -143,7 +147,7 @@ public class MainApplication extends Application {
                         Delay INTEGER NOT NULL,
                         OutputML INTEGER NOT NULL,
                         MinimumMoistureLevel INTEGER NOT NULL,
-                        CurrentMoistureLevel INTEGER NOT NULL
+                        CurrentMoistureLevel DOUBLE NOT NULL
                     )
                 """;
 
