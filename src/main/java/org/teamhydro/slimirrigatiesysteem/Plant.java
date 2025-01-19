@@ -1,14 +1,18 @@
 package org.teamhydro.slimirrigatiesysteem;
 
+import org.json.JSONObject;
+
 public class Plant {
     private int plantId;
     private String name;
     private String plantType;
     private boolean useDays;
+    private int totalDelayMs;
+    private int currentDelay;
     private int delay;
     private int outputML;
     private int minimumMoistureLevel;
-    private int currentMoistureLevel;
+    private double currentMoistureLevel;
 
     // Constructor
     public Plant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
@@ -20,6 +24,20 @@ public class Plant {
         this.outputML = outputML;
         this.minimumMoistureLevel = minimumMoistureLevel;
         this.currentMoistureLevel = currentMoistureLevel;
+    }
+
+    public void refreshFromArduino() {
+        MainApplication.sendDataToArduino("fetch");
+        String response = MainApplication.receiveDataFromArduino();
+        assert response != null;
+
+        // {"delayTime":"1","shouldUseDays":"false","needsWater":"false","totalDelayMs":"0","currentDelay":"0","moistureLevel":"0","status":"Fetching latest data"}
+        JSONObject jsonResponse = new JSONObject(response);
+        this.delay = jsonResponse.getInt("delayTime");
+        this.useDays = jsonResponse.getBoolean("shouldUseDays");
+        this.currentMoistureLevel = jsonResponse.getDouble("moistureLevel");
+        this.totalDelayMs = jsonResponse.getInt("totalDelayMs");
+        this.currentDelay = jsonResponse.getInt("currentDelay");
     }
 
     // Getter and Setter methods for each property
@@ -79,7 +97,7 @@ public class Plant {
         this.minimumMoistureLevel = minimumMoistureLevel;
     }
 
-    public int getCurrentMoistureLevel() {
+    public double getCurrentMoistureLevel() {
         return currentMoistureLevel;
     }
 

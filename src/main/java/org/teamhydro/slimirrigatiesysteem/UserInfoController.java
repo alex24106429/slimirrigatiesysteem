@@ -44,10 +44,6 @@ public class UserInfoController {
         System.out.println(address);
         System.out.println(email);
 
-        MainApplication.setName(name);
-        MainApplication.setAddress(address);
-        MainApplication.setEmail(email);
-
         MainApplication.switchView("plant-view.fxml");
     }
 }

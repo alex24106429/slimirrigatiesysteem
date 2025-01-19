@@ -91,10 +91,10 @@ public class PlantViewController {
     }
 
     @FXML
-    private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
+    private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, double currentMoistureLevel) {
         plantNameLabel.setText(name);
 
-        moistureBar.setProgress((double) currentMoistureLevel / 1024);
+        moistureBar.setProgress(currentMoistureLevel / 1024);
 
         // Corrected image loading
         String imagePath = "/org/teamhydro/slimirrigatiesysteem/plantImages/" + plantType + ".png";
@@ -110,12 +110,30 @@ public class PlantViewController {
         }
 
         noPlantOverlay.setVisible(false);
+
+        // Every 5 seconds, refresh the plant data using the Plant function refreshFromArduino
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                    Plant plant = MainApplication.getPlantByName(name);
+                    assert plant != null;
+                    plant.refreshFromArduino();
+                    Platform.runLater(() -> {
+                        moistureBar.setProgress(plant.getCurrentMoistureLevel() / 1024);
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @FXML
     private void loadPlantFromName(String plantName) {
         Plant chosenPlant = MainApplication.getPlantByName(plantName);
 
+        assert chosenPlant != null;
         loadPlant(plantName, chosenPlant.getPlantType(), chosenPlant.isUseDays(), chosenPlant.getDelay(), chosenPlant.getOutputML(), chosenPlant.getMinimumMoistureLevel(), chosenPlant.getCurrentMoistureLevel());
     }
 

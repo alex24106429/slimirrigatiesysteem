@@ -4,6 +4,10 @@ module org.teamhydro.slimirrigatiesysteem {
     requires jdk.compiler;
     requires transitive java.sql;
     requires javafx.graphics;
+    requires com.fazecast.jSerialComm;
+    requires java.net.http;
+    requires java.prefs;
+    requires org.json;
 
 
     opens org.teamhydro.slimirrigatiesysteem to javafx.fxml;

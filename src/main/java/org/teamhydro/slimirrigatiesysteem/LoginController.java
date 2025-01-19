@@ -5,7 +5,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
+
+import static org.teamhydro.slimirrigatiesysteem.ApiController.storeUserData;
 
 public class LoginController {
 
@@ -23,28 +27,42 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        System.out.println("Login Controller initialized.");
         invalidLoginOverlay.setVisible(false);
     }
 
     @FXML
-    private void handleLoginButtonAction() throws IOException {
-        // Retrieve the username and password entered in the TextFields
+    private void handleLoginButtonAction() throws Exception {
+        // Retrieve the username and password entered the TextFields
         String email = emailField.getText();
         String password = passwordField.getText();
 
-        if (email.equals("") || password.equals("")) {
+        if (email.isEmpty() || password.isEmpty()) {
             MainApplication.fadeIn(invalidLoginOverlay, 200);
             return;
         }
 
-        // TODO: Authenticate with the server
-        System.out.println("Email: " + email);
-        System.out.println("Password: " + password);
+        // Call the API to authenticate
+        String response = ApiController.login(email, password);
+        JSONObject jsonResponse = new JSONObject(response);
 
-        MainApplication.setEmail(email);
+        // Get the token value
+        String token = jsonResponse.getString("token");
 
-        switchToPlantView();
+        // Get user data (name, email, address)
+        JSONObject user = jsonResponse.getJSONObject("user");
+        String name = user.getString("name");
+        String address = user.getString("address");
+
+        // Store token and user data
+        storeUserData(token, name, email, address);
+
+        // Handle the response (You can adjust this logic based on the API response)
+        if (response.contains("Invalid credentials") || response.isEmpty() || response.startsWith("Error")) {
+            MainApplication.fadeIn(invalidLoginOverlay, 200);
+        } else {
+            // Store email or other data from the response, if needed
+            switchToPlantView();
+        }
     }
 
     @FXML

@@ -20,21 +20,70 @@ import java.sql.PreparedStatement;
 import java.util.Objects;
 import java.util.Random;
 
+import com.fazecast.jSerialComm.SerialPort;
+
 public class MainApplication extends Application {
 
-    protected static Connection conn;
+    protected static Connection dbConn;
+    protected static SerialPort arduinoPort;
+    protected static int baudRate = 9600;
+    protected static int timeout = 1000;
+    protected static int dataBits = 8;
 
-    public static Connection getConnection() {
-        if (conn != null) return conn;
+    public static Connection getDatabaseConnection() {
+        if (dbConn != null) return dbConn;
 
         try {
             // Get the local sqlite database
             String url = "jdbc:sqlite:slimirrigatiesysteem.db";
-            conn = DriverManager.getConnection(url);
-            return conn;
+            dbConn = DriverManager.getConnection(url);
+            return dbConn;
         } catch (Exception e) {
             // Print the exception
             System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static SerialPort getArduinoSerialConnection() {
+        if (arduinoPort != null && arduinoPort.isOpen()) return arduinoPort;
+
+        try {
+            arduinoPort = setupArduinoConnection();
+            return arduinoPort;
+        } catch (Exception e) {
+            System.out.println("Error establishing Arduino connection: " + e.getMessage());
+            return null;
+        }
+    }
+
+    protected static void sendDataToArduino(String data) {
+        try {
+            arduinoPort.getOutputStream().write((data + "\n").getBytes());
+            arduinoPort.getOutputStream().flush();
+            System.out.println("Sent: " + data);
+
+            // Wait for Arduino to process the data (e.g., 100 ms)
+            Thread.sleep(100);
+        } catch (Exception e) {
+            System.out.println("Error sending data: " + e.getMessage());
+        }
+    }
+
+    protected static String receiveDataFromArduino() {
+        try {
+            byte[] buffer = new byte[1024]; // Buffer to hold incoming data
+            int numRead = arduinoPort.readBytes(buffer, buffer.length); // Read available bytes
+            if (numRead > 0) {
+                String receivedData = new String(buffer, 0, numRead).trim(); // Convert bytes to string
+                System.out.println("Received: " + receivedData);
+                return receivedData; // Return the received string
+            } else {
+                System.out.println("No data received.");
+                return null; // No data was read
+            }
+        } catch (Exception e) {
+            System.out.println("Error reading from Arduino: " + e.getMessage());
             return null;
         }
     }
@@ -74,11 +123,115 @@ public class MainApplication extends Application {
 
     public static Stage globalStage;
 
+    private static void setupLocalDatabase() {
+        // Check if the connection is available
+        if (getDatabaseConnection() == null) return;
+
+        // Create the database
+        String createPlantsTable = """
+                    CREATE TABLE IF NOT EXISTS plants (
+                        PlantId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL
+                    )
+                """;
+
+        String createPlantConfigsTable = """
+                    CREATE TABLE IF NOT EXISTS plant_configs (
+                        PlantId INTEGER PRIMARY KEY,
+                        PlantType TEXT NOT NULL,
+                        UseDays BOOLEAN NOT NULL,
+                        Delay INTEGER NOT NULL,
+                        OutputML INTEGER NOT NULL,
+                        MinimumMoistureLevel INTEGER NOT NULL,
+                        CurrentMoistureLevel INTEGER NOT NULL
+                    )
+                """;
+
+        try (PreparedStatement statement = Objects.requireNonNull(getDatabaseConnection()).prepareStatement(createPlantsTable)) {
+            statement.executeUpdate();
+        } catch (Exception e) {
+            // Print the exception
+            System.out.println(e.getMessage());
+        }
+
+        try (PreparedStatement statement = Objects.requireNonNull(getDatabaseConnection()).prepareStatement(createPlantConfigsTable)) {
+            statement.executeUpdate();
+        } catch (Exception e) {
+            // Print the exception
+            System.out.println(e.getMessage());
+        }
+
+        // Print a success message
+        System.out.println("Database setup complete.");
+    }
+
+    public static SerialPort setupArduinoConnection() {
+        // Find all available serial ports
+        SerialPort[] ports = SerialPort.getCommPorts();
+        for (SerialPort port : ports) {
+            System.out.println("Found port: " + port.getSystemPortName());
+        }
+
+        // Open the (first) serial port
+        SerialPort arduinoPort = SerialPort.getCommPort(ports[0].getSystemPortName());
+        arduinoPort.setBaudRate(baudRate); // Match this to your Arduino code's baud rate
+        arduinoPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, timeout, timeout);
+        arduinoPort.setNumDataBits(dataBits);
+        arduinoPort.setNumStopBits(SerialPort.ONE_STOP_BIT);
+        arduinoPort.setParity(SerialPort.NO_PARITY);
+
+        if (arduinoPort.openPort()) {
+            System.out.println("Port opened successfully!");
+        } else {
+            System.out.println("Failed to open port.");
+            return null;
+        }
+
+        return arduinoPort;
+    }
+
+    private static boolean testArduinoConnectivity() {
+        try {
+            // Wait for the Arduino to connect
+            while (getArduinoSerialConnection() == null) {
+                System.out.println("Waiting for Arduino connection...");
+
+                //noinspection BusyWait
+                Thread.sleep(5000);
+            }
+
+            // Test communication
+            sendDataToArduino("ping");
+            String response = receiveDataFromArduino();
+            if ("pong".equals(response)) {
+                System.out.println("Arduino responded correctly!");
+            } else {
+                System.out.println("Arduino did not respond correctly.");
+                Thread.sleep(2000);
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("Error establishing Arduino connection: " + e.getMessage());
+            return false;
+        }
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         globalStage = stage;
         switchView("login-view.fxml");
         stage.setResizable(false);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        // Close the Arduino port on application exit
+        if (arduinoPort != null && arduinoPort.isOpen()) {
+            arduinoPort.closePort();
+        }
+        super.stop();
     }
 
     public static int getRandomInt(int min, int max) {
@@ -102,79 +255,35 @@ public class MainApplication extends Application {
     public static void main(String[] args) {
         // Set up the local database
         setupLocalDatabase();
-        launch();
-    }
 
-    private static void setupLocalDatabase() {
-        // Check if the connection is available
-        if (getConnection() == null) return;
+        int currentAttempt = 0;
+        boolean connected = false; // Variable to track the connection status
 
-        // Create the database
-        String createPlantsTable = """
-                    CREATE TABLE IF NOT EXISTS plants (
-                        PlantId INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL
-                    )
-                """;
-
-        String createPlantConfigsTable = """
-                    CREATE TABLE IF NOT EXISTS plant_configs (
-                        PlantId INTEGER PRIMARY KEY,
-                        PlantType TEXT NOT NULL,
-                        UseDays BOOLEAN NOT NULL,
-                        Delay INTEGER NOT NULL,
-                        OutputML INTEGER NOT NULL,
-                        MinimumMoistureLevel INTEGER NOT NULL,
-                        CurrentMoistureLevel INTEGER NOT NULL
-                    )
-                """;
-
-        try (PreparedStatement statement = Objects.requireNonNull(getConnection()).prepareStatement(createPlantsTable)) {
-            statement.executeUpdate();
-        } catch (Exception e) {
-            // Print the exception
-            System.out.println(e.getMessage());
+        // Attempt to connect to the Arduino, retry up to 5 times
+        while (currentAttempt < 10 && !(connected = testArduinoConnectivity())) {
+            currentAttempt++;
+            System.out.println("Retrying connection attempt " + (currentAttempt + 1) + "...");
         }
 
-        try (PreparedStatement statement = Objects.requireNonNull(getConnection()).prepareStatement(createPlantConfigsTable)) {
-            statement.executeUpdate();
-        } catch (Exception e) {
-            // Print the exception
-            System.out.println(e.getMessage());
+        // Launch the application only if the Arduino is connected
+        if (connected) {
+            launch(args);
+        } else {
+            System.out.println("Failed to connect to Arduino. Exiting...");
+            System.exit(1);
         }
-
-        // Print a success message
-        System.out.println("Database setup complete.");
     }
-
-    private static String name = "Naam";
 
     public static String getName() {
-        return name;
+        return ApiController.getStoredName();
     }
-
-    public static void setName(String newName) {
-        name = newName;
-    }
-
-    private static String email = "test@example.com";
 
     public static String getEmail() {
-        return email;
+        return ApiController.getStoredEmail();
     }
-
-    public static void setEmail(String newEmail) {
-        email = newEmail;
-    }
-
-    public static String address = "Sesamstraat";
 
     public static String getAddress() {
-        return address;
-    }
-
-    public static void setAddress(String newAddress) {
-        address = newAddress;
+        return ApiController.getStoredAddress();
     }
 
     @FXML
