@@ -29,6 +29,7 @@ public class MainApplication extends Application {
     protected static int baudRate = 9600;
     protected static int timeout = 1000;
     protected static int dataBits = 8;
+    private static Object currentController;
 
     public static Connection getDatabaseConnection() {
         if (dbConn != null) return dbConn;
@@ -91,6 +92,7 @@ public class MainApplication extends Application {
     public static FXMLLoader switchView(String fxmlName) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
         Parent root = fxmlLoader.load();
+        setCurrentController(fxmlLoader.getController());
     
         // Define the scale factor as a variable
         double scaleFactor = 1.411764705882353; // 48 / 34 (icons are 48px, but scaled to 34px, making this the optimal factor for high-res icons)
@@ -126,10 +128,6 @@ public class MainApplication extends Application {
     private static void setupLocalDatabase() {
         // Check if the connection is available
         if (getDatabaseConnection() == null) return;
-
-        // Drop everything
-        String dropPlantsTable = "DROP TABLE IF EXISTS plants";
-        String dropPlantConfigsTable = "DROP TABLE IF EXISTS plant_configs";
 
         // Create the database
         String createPlantsTable = """
@@ -231,7 +229,12 @@ public class MainApplication extends Application {
 
     @Override
     public void stop() throws Exception {
-        // Close the Arduino port on application exit
+        // Get the current controller and clean up if needed
+        if (currentController instanceof PlantViewController) {
+            ((PlantViewController) currentController).cleanup();
+        }
+        
+        // Close the Arduino port
         if (arduinoPort != null && arduinoPort.isOpen()) {
             arduinoPort.closePort();
         }
@@ -321,5 +324,9 @@ public class MainApplication extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public static void setCurrentController(Object controller) {
+        currentController = controller;
     }
 }

@@ -11,10 +11,9 @@ public class Plant {
     private boolean useDays;
     private int totalDelayMs;
     private int currentDelay;
-    private int delay;
     private int outputML;
     private int minimumMoistureLevel;
-    private double currentMoistureLevel;
+    private int currentMoistureLevel;
 
     // Constructor
     public Plant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, int currentMoistureLevel) {
@@ -22,25 +21,40 @@ public class Plant {
         this.name = name;
         this.plantType = plantType; // "african_violet", "hedgehog_cactus", "monstera", "pothos", "zz_plant", "aloe_vera", "jasmine", "orchid", "rosemary", "english_ivy", "lavender", "peace_lily", "snake_plant", "fiddle_leaf_fig", "mexican_fence_post_cactus", "philodendron", "spider_plant"
         this.useDays = useDays;
-        this.delay = delay;
+        this.totalDelayMs = delay;
         this.outputML = outputML;
         this.minimumMoistureLevel = minimumMoistureLevel;
         this.currentMoistureLevel = currentMoistureLevel;
     }
 
-    public void refreshFromArduino() {
+    public boolean refreshFromArduino() {
         MainApplication.sendDataToArduino("fetch");
         String response = MainApplication.receiveDataFromArduino();
-        // Assert that the response is in the correct format (JSON)
-        assert Objects.requireNonNull(response).startsWith("{") && response.endsWith("}");
+        // Check that the response is in the correct format (JSON)
+        if (response == null || !response.startsWith("{") || !response.endsWith("}")) {
+            return false;
+        }
 
         // {"delayTime":"1","shouldUseDays":"false","needsWater":"false","totalDelayMs":"0","currentDelay":"0","moistureLevel":"0","status":"Fetching latest data"}
         JSONObject jsonResponse = new JSONObject(response);
-        this.delay = jsonResponse.getInt("delayTime");
-        this.useDays = jsonResponse.getBoolean("shouldUseDays");
-        this.currentMoistureLevel = jsonResponse.getDouble("moistureLevel");
-        this.totalDelayMs = jsonResponse.getInt("totalDelayMs");
-        this.currentDelay = jsonResponse.getInt("currentDelay");
+
+        // Only set valid data for specific fields we care about
+        if (jsonResponse.has("currentDelay") && !jsonResponse.isNull("currentDelay")) {
+            this.setCurrentDelay(jsonResponse.getInt("currentDelay"));
+        }
+        
+        if (jsonResponse.has("shouldUseDays") && !jsonResponse.isNull("shouldUseDays")) {
+            this.setUseDays(jsonResponse.getBoolean("shouldUseDays"));
+        }
+        
+        if (jsonResponse.has("moistureLevel") && !jsonResponse.isNull("moistureLevel")) {
+            int moisture = jsonResponse.getInt("moistureLevel");
+            if (moisture >= 0) {
+                this.setCurrentMoistureLevel(moisture);
+            }
+        }
+
+        return true;
     }
 
     // Getter and Setter methods for each property
@@ -77,11 +91,19 @@ public class Plant {
     }
 
     public int getDelay() {
-        return delay;
+        return totalDelayMs;
+    }
+
+    public int getCurrentDelay() {
+        return currentDelay;
+    }
+
+    public void setCurrentDelay(int currentDelay) {
+        this.currentDelay = currentDelay;
     }
 
     public void setDelay(int delay) {
-        this.delay = delay;
+        this.totalDelayMs = delay;
     }
 
     public int getOutputML() {

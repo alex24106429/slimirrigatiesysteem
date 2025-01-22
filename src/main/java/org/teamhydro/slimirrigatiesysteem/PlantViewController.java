@@ -1,7 +1,6 @@
 package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -46,10 +45,16 @@ public class PlantViewController {
     private ProgressBar moistureBar;
 
     @FXML
+    private Label delayProgressText;
+
+    @FXML
     private Rectangle noPlantOverlay;
 
     @FXML
     private ImageView plantImage;
+
+    private volatile boolean isRunning = true;
+    private Thread refreshThread;
 
     @FXML
     private void showSearchDialog() {
@@ -111,22 +116,62 @@ public class PlantViewController {
 
         noPlantOverlay.setVisible(false);
 
-        // Every 5 seconds, refresh the plant data using the Plant function refreshFromArduino
-        new Thread(() -> {
-            while (true) {
+        // Stop existing refresh thread if it exists
+        stopRefreshThread();
+
+        // Create new refresh thread
+        refreshThread = new Thread(() -> {
+            while (isRunning) {
                 try {
                     Thread.sleep(5000);
                     Plant plant = MainApplication.getPlantByName(name);
-                    assert plant != null;
-                    plant.refreshFromArduino();
-                    Platform.runLater(() -> {
-                        moistureBar.setProgress(plant.getCurrentMoistureLevel() / 1024);
-                    });
+                    if (plant == null) {
+                        isRunning = false;
+                        continue;
+                    }
+                    
+                    boolean success = plant.refreshFromArduino();
+                    if (success) {
+                        Platform.runLater(() -> {
+                            moistureBar.setProgress(plant.getCurrentMoistureLevel() / 1024);
+                            updateDelayText(plant);
+                        });
+                    } else {
+                        // Handle communication failure
+                        Platform.runLater(() -> {
+                            MainApplication.showAlert(AlertType.WARNING, 
+                                "Communication Error", 
+                                "Failed to update plant data from Arduino");
+                        });
+                        Thread.sleep(30000); // Wait longer before retrying
+                    }
                 } catch (InterruptedException e) {
+                    isRunning = false;
+                } catch (Exception e) {
                     e.printStackTrace();
+                    isRunning = false;
                 }
             }
-        }).start();
+        });
+        refreshThread.setDaemon(true);
+        refreshThread.start();
+    }
+
+    private void stopRefreshThread() {
+        isRunning = false;
+        if (refreshThread != null) {
+            refreshThread.interrupt();
+            try {
+                refreshThread.join(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Add this to handle cleanup
+    public void cleanup() {
+        stopRefreshThread();
     }
 
     @FXML
@@ -255,5 +300,24 @@ public class PlantViewController {
     private void syncWithMicroBit() {
         // TODO: Sync with the Micro:Bit
         MainApplication.showAlert(AlertType.INFORMATION, "Sync with Micro:Bit", "TODO");
+    }
+
+    private void updateDelayText(Plant plant) {
+        // Format delay time
+        int currentDelay = plant.getCurrentDelay();
+        
+        String formattedTime;
+        if (plant.isUseDays()) {
+            int days = currentDelay / (24 * 3600);
+            formattedTime = days + "d";
+        } else {
+            int hours = currentDelay / 3600;
+            int minutes = (currentDelay % 3600) / 60;
+            int seconds = currentDelay % 60;
+            formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        }
+        
+        delayProgressText.setText(formattedTime + "/" + 
+            (plant.isUseDays() ? plant.getDelay() + "d" : "0h"));
     }
 }

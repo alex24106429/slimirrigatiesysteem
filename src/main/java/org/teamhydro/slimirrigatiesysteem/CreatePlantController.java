@@ -151,11 +151,34 @@ public class CreatePlantController implements Initializable {
                 }
             }
 
-
             // Create a new Plant object
             Plant newPlant = new Plant(name, plantType, useDays, delay, outputML, minimumMoistureLevel, currentMoistureLevel);
 
-            // Determine if we are updating an existing plant or creating a new one
+            // Create JSON array with plant data
+            String jsonData = String.format("[{\"name\":\"%s\",\"type\":\"%s\",\"useDays\":%b,\"delay\":%d,\"outputML\":%d,\"minMoisture\":%d}]",
+                name, plantType, useDays, delay, outputML, minimumMoistureLevel);
+
+            // Try sending to Arduino up to 5 times
+            boolean arduinoSuccess = false;
+            for (int i = 0; i < 5; i++) {
+                MainApplication.sendDataToArduino(jsonData);
+                String response = MainApplication.receiveDataFromArduino();
+                
+                if ("Done!".equals(response)) {
+                    arduinoSuccess = true;
+                    break;
+                }
+                
+                Thread.sleep(1000); // Wait a second before retrying
+            }
+
+            if (!arduinoSuccess) {
+                MainApplication.showAlert(AlertType.ERROR, "Arduino Error", 
+                    "Failed to update Arduino after 5 attempts. Plant not saved.");
+                return;
+            }
+
+            // If Arduino update succeeded, update local database
             boolean success;
             if (originalPlant != null) {
                 success = PlantRepository.updatePlant(newPlant, originalPlant.getName());
@@ -163,26 +186,23 @@ public class CreatePlantController implements Initializable {
                 success = PlantRepository.addPlant(newPlant);
             }
 
-            // Show a success or error message based on the result
             if (success) {
-                // Refresh the plants list
                 PlantRepository.refreshPlants();
                 returnToPlantView();
             } else {
                 System.out.println("Error saving plant.");
-
-                // Show an error alert to the user
-                MainApplication.showAlert(AlertType.ERROR, "Error", "Er is een fout opgetreden bij het opslaan van de plant.");
+                MainApplication.showAlert(AlertType.ERROR, "Error", 
+                    "Er is een fout opgetreden bij het opslaan van de plant.");
             }
+
         } catch (NumberFormatException e) {
-            // Handle invalid number format in input fields
-            MainApplication.showAlert(AlertType.ERROR, "Input Error", "Voer geldige getallen in voor delay, water output, en minimum moisture level.");
+            MainApplication.showAlert(AlertType.ERROR, "Input Error", 
+                "Voer geldige getallen in voor delay, water output, en minimum moisture level.");
         } catch (IllegalArgumentException e) {
-            // Handle invalid input values
             MainApplication.showAlert(AlertType.ERROR, "Input Error", e.getMessage());
         } catch (Exception e) {
-            // Handle any other unexpected errors
-            MainApplication.showAlert(AlertType.ERROR, "Error", "Er is een onverwachte fout opgetreden: " + e.getMessage());
+            MainApplication.showAlert(AlertType.ERROR, "Error", 
+                "Er is een onverwachte fout opgetreden: " + e.getMessage());
         }
     }
 }
