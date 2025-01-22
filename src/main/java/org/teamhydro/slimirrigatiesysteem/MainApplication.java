@@ -2,6 +2,7 @@ package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -272,12 +273,22 @@ public class MainApplication extends Application {
             System.out.println("Retrying connection attempt " + (currentAttempt + 1) + "...");
         }
 
-        // Launch the application only if the Arduino is connected
         if (connected) {
+            // Launch the JavaFX application if Arduino is connected
             launch(args);
         } else {
-            System.out.println("Failed to connect to Arduino. Exiting...");
-            System.exit(1);
+            System.out.println("Failed to connect to Arduino.");
+
+            // Ensure the JavaFX toolkit is initialized only if needed
+            if (!Platform.isFxApplicationThread()) {
+                Platform.runLater(() -> {
+                    showAlert(AlertType.ERROR, "Fout", "Kan geen verbinding maken met de Arduino. Controleer de verbinding en probeer het opnieuw.");
+                    System.exit(1);
+                });
+            } else {
+                showAlert(AlertType.ERROR, "Fout", "Kan geen verbinding maken met de Arduino. Controleer de verbinding en probeer het opnieuw.");
+                System.exit(1);
+            }
         }
     }
 
