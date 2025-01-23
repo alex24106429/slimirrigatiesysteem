@@ -233,7 +233,6 @@ public class MainApplication extends Application {
 
     protected static String receiveDataFromArduino() {
         try {
-            StringBuilder response = new StringBuilder();
             int noDataCount = 0;
             final int MAX_WAIT_CYCLES = 40;
             
@@ -510,7 +509,7 @@ public class MainApplication extends Application {
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setDuration(Duration.millis(time));
-        fadeOut.setOnFinished(event -> element.setVisible(false));
+        fadeOut.setOnFinished(_ -> element.setVisible(false));
 
         fadeOut.play();
     }

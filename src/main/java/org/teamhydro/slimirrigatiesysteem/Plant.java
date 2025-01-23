@@ -2,8 +2,6 @@ package org.teamhydro.slimirrigatiesysteem;
 
 import org.json.JSONObject;
 
-import java.util.Objects;
-
 public class Plant {
     private int plantId;
     private String name;

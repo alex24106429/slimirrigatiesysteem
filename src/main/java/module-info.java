@@ -7,7 +7,7 @@ module org.teamhydro.slimirrigatiesysteem {
     requires transitive com.fazecast.jSerialComm;
     requires java.net.http;
     requires java.prefs;
-    requires org.json;
+    requires transitive org.json;
 
 
     opens org.teamhydro.slimirrigatiesysteem to javafx.fxml;

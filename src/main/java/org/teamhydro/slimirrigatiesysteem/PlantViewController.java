@@ -65,7 +65,6 @@ public class PlantViewController {
     private Timeline countdownTimeline;
     private int loadingRotations = 0;
     private Plant currentPlant;
-    private boolean showingError = false;
     private int currentCountdownValue = 0;
 
     @FXML
@@ -144,7 +143,7 @@ public class PlantViewController {
 
         // Create new refresh timeline
         refreshTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(20), event -> {
+            new KeyFrame(Duration.seconds(20), _ -> {
                 refreshPlantData();
             })
         );
@@ -162,7 +161,7 @@ public class PlantViewController {
         loadingRotations = 0;
         
         loadingAnimation = new Timeline(
-            new KeyFrame(Duration.millis(50), event -> {
+            new KeyFrame(Duration.millis(50), _ -> {
                 loadingIcon.setRotate((loadingIcon.getRotate() + 10) % 360);
                 if (loadingIcon.getRotate() % 360 == 0) {
                     loadingRotations++;
@@ -236,7 +235,7 @@ public class PlantViewController {
         updateCountdownDisplay();
 
         countdownTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(1), event -> {
+            new KeyFrame(Duration.seconds(1), _ -> {
                 if (currentCountdownValue > 0) {
                     currentCountdownValue--;
                     updateCountdownDisplay();
@@ -345,7 +344,10 @@ public class PlantViewController {
 
     @FXML
     private void logout() throws IOException {
-        // TODO: Logout logic
+        // Delete user cache
+        UserCache.clearCache();
+
+        // Switch to login view
         MainApplication.switchView("login-view.fxml");
     }
 
@@ -399,7 +401,7 @@ public class PlantViewController {
         Platform.runLater(() -> {
             Scene scene = plantNameLabel.getScene();
             if (scene != null) {
-                scene.windowProperty().addListener((obs, oldWindow, newWindow) -> {
+                scene.windowProperty().addListener((_, _, newWindow) -> {
                     if (newWindow == null) {
                         stopRefreshTimeline();
                     }
