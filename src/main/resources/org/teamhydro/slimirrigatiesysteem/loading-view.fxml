@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="400.0" prefWidth="640.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.teamhydro.slimirrigatiesysteem.LoadingViewController">
+    <children>
+        <AnchorPane id="anchorPane" fx:id="mainAnchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+         <children>
+            <VBox alignment="CENTER" prefHeight="420.0" prefWidth="640.0" spacing="20">
+               <children>
+                  <VBox alignment="CENTER" prefHeight="200.0" spacing="15">
+                     <children>
+                        <ImageView fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../../../../../../icons/droplet.png" />
+                           </image>
+                        </ImageView>
+                        <Label text="Verbinding maken" textAlignment="CENTER">
+                           <font>
+                              <Font size="24.0" />
+                           </font>
+                        </Label>
+                        <Label fx:id="statusLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Verbinden met Arduino device" textAlignment="CENTER" wrapText="true" />
+                        <Label fx:id="taskLabel" style="-fx-font-size: 14px; -fx-text-fill: #666666;" text="Zoeken naar beschikbare poorten..." textAlignment="CENTER" wrapText="true" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" prefHeight="200.0" spacing="20">
+                     <children>
+                        <ProgressIndicator fx:id="progressIndicator" prefHeight="100.0" prefWidth="100.0" />
+                        <HBox fx:id="buttonContainer" alignment="CENTER" spacing="10" visible="false">
+                           <children>
+                              <Button onAction="#handleRetry" prefHeight="43.0" prefWidth="159.0" styleClass="buttonMain" text="Opnieuw proberen">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Button>
+                              <Button onAction="#handleExit" prefHeight="43.0" prefWidth="128.0" styleClass="buttonAlt" text="Afsluiten">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+        </AnchorPane>
+    </children>
+</VBox>

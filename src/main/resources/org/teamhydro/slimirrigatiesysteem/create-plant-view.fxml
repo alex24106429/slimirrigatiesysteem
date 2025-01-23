@@ -92,7 +92,7 @@
                   <Font size="15.0" />
                </font>
             </TextField>
-            <Label alignment="CENTER" layoutX="555.0" layoutY="247.0" text="mL" textAlignment="CENTER" wrapText="false">
+            <Label alignment="CENTER" layoutX="555.0" layoutY="247.0" text="%%" textAlignment="CENTER" wrapText="false">
                <font>
                   <Font size="16.0" />
                </font>

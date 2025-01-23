@@ -63,29 +63,34 @@ public class LoginController {
         }
 
         // Call the API to authenticate
-        String response = ApiController.login(email, password);
-        JSONObject jsonResponse = new JSONObject(response);
+        try {
+            String response = ApiController.login(email, password);
+            JSONObject jsonResponse = new JSONObject(response);
 
-        // Get the token value
-        String token = jsonResponse.getString("token");
+            // Get the token value
+            String token = jsonResponse.getString("token");
 
-        // Get user data (name, email, address)
-        JSONObject user = jsonResponse.getJSONObject("user");
-        String name = user.getString("name");
-        String address = user.getString("address");
+            // Get user data (name, email, address)
+            JSONObject user = jsonResponse.getJSONObject("user");
+            String name = user.getString("name");
+            String address = user.getString("address");
 
-        // Store token and user data
-        storeUserData(token, name, email, address);
+            // Store token and user data
+            storeUserData(token, name, email, address);
 
-        // After successful login, save to cache
-        UserCache.saveUserCache(token, name, email, address);
+            // After successful login, save to cache
+            UserCache.saveUserCache(token, name, email, address);
 
-        // Handle the response (You can adjust this logic based on the API response)
-        if (response.contains("Invalid credentials") || response.isEmpty() || response.startsWith("Error")) {
+            // Handle the response (You can adjust this logic based on the API response)
+            if (response.contains("Invalid credentials") || response.isEmpty() || response.startsWith("Error")) {
+                MainApplication.fadeIn(invalidLoginOverlay, 200);
+            } else {
+                // Store email or other data from the response, if needed
+                switchToPlantView();
+            }
+        } catch (Exception e) {
+            // Possibly an error in the API call, treat as invalid login
             MainApplication.fadeIn(invalidLoginOverlay, 200);
-        } else {
-            // Store email or other data from the response, if needed
-            switchToPlantView();
         }
     }
 

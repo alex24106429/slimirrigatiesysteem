@@ -114,7 +114,9 @@ public class CreatePlantController implements Initializable {
             hourDay.setText(originalPlant.isUseDays() ? "Dagen" : "Uren");
             timeTextField.setText(String.valueOf(originalPlant.getDelay()));
             waterOutputField.setText(String.valueOf(originalPlant.getOutputML()));
-            minimumWaterField.setText(String.valueOf(originalPlant.getMinimumMoistureLevel()));
+
+            // Convert minimum moisture level from integer to percentage
+            minimumWaterField.setText(String.valueOf((int) ((originalPlant.getMinimumMoistureLevel() / 1024.0) * 100)));
         }
     }
 
@@ -143,6 +145,12 @@ public class CreatePlantController implements Initializable {
             if (minimumMoistureLevel < 0) {
                 throw new IllegalArgumentException("Minimum moisture level cannot be negative.");
             }
+            if (minimumMoistureLevel > 100) {
+                throw new IllegalArgumentException("Minimum moisture level cannot be greater than 100%.");
+            }
+
+            // Convert minimum moisture level from percentage to integer
+            minimumMoistureLevel = (int) (minimumMoistureLevel * 1024 / 100);
 
             // Check for duplicate plant names
             for (Plant plant : MainApplication.plants) {

@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.LoadException;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -13,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.transform.Scale;
 import javafx.scene.Parent;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -277,49 +279,42 @@ public class MainApplication extends Application {
     public static FXMLLoader switchView(String fxmlName) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource(fxmlName));
         Parent root = fxmlLoader.load();
-        setCurrentController(fxmlLoader.getController());
     
         // Define the scale factor as a variable
-        double scaleFactor = 1.411764705882353;
+        double scaleFactor = 1.411764705882353; // 48 / 34 (icons are 48px, but scaled to 34px, making this the optimal factor for high-res icons)
     
         // Create a Scale transformation
         Scale scale = new Scale();
-        scale.setX(scaleFactor);
-        scale.setY(scaleFactor);
+        scale.setX(scaleFactor);  // Scale X by the scale factor
+        scale.setY(scaleFactor);  // Scale Y by the scale factor
     
         // Apply the transformation to the root node
         root.getTransforms().add(scale);
+
+        // Set the application icon
+        globalStage.getIcons().add(new Image(MainApplication.class.getResourceAsStream("/org/teamhydro/slimirrigatiesysteem/icons/droplet.png")));
     
-        // Create the scene with a StackPane as root to support overlays
+        // Adjust the scene size based on the scale factor
         Scene scene = new Scene(root, 640 * scaleFactor, 400 * scaleFactor);
-    
-        String title = switch (fxmlName) {
+        
+        String title = getTitleForView(fxmlName);
+        globalStage.setTitle(title + " - Slim Irrigatie Systeem");
+        globalStage.setScene(scene);
+        globalStage.show();
+
+        return fxmlLoader;
+    }
+
+    private static String getTitleForView(String fxmlName) {
+        return switch (fxmlName) {
             case "login-view.fxml" -> "Inloggen";
             case "plant-view.fxml" -> "Plant";
             case "passwordrecovery-view.fxml" -> "Wachtwoord Herstellen";
             case "userinfo-view.fxml" -> "Uw Gegevens";
             case "create-plant-view.fxml" -> "Nieuwe plant";
+            case "loading-view.fxml" -> "Verbinding maken";
             default -> "Onbekend";
         };
-        globalStage.setTitle(title + " - Slim Irrigatie Systeem");
-
-        // Set application icon
-        try {
-            InputStream iconStream = MainApplication.class.getResourceAsStream("/org/teamhydro/slimirrigatiesysteem/icons/droplet.png");
-            if (iconStream != null) {
-                Image icon = new Image(iconStream);
-                globalStage.getIcons().add(icon);
-            } else {
-                System.out.println("Warning: Could not load application icon");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading application icon: " + e.getMessage());
-        }
-
-        globalStage.setScene(scene);
-        globalStage.show();
-
-        return fxmlLoader;
     }
 
     public static Stage globalStage;
@@ -394,9 +389,15 @@ public class MainApplication extends Application {
     protected static boolean testArduinoConnectivity() {
         try {
             // Wait for the Arduino to connect
-            while (getArduinoSerialConnection() == null) {
-                System.out.println("Waiting for Arduino connection...");
+            int attempts = 3;
+            while (attempts > 0 && getArduinoSerialConnection() == null) {
+                System.out.println("Waiting for Arduino connection... " + attempts + " attempts remaining");
                 Thread.sleep(5000);
+                attempts--;
+            }
+            if (attempts == 0) {
+                System.out.println("Failed to establish Arduino connection after 3 attempts");
+                return false;
             }
 
             // Clear any existing data
@@ -417,7 +418,7 @@ public class MainApplication extends Application {
     public void start(Stage stage) throws IOException {
         globalStage = stage;
         
-        switchView("login-view.fxml");
+        switchView("loading-view.fxml");
         stage.setResizable(false);
     }
 
@@ -457,32 +458,8 @@ public class MainApplication extends Application {
         // Set up the local database
         setupLocalDatabase();
 
-        int currentAttempt = 0;
-        boolean connected = false; // Variable to track the connection status
-
-        // Attempt to connect to the Arduino, retry up to 5 times
-        while (currentAttempt < 10 && !(connected = testArduinoConnectivity())) {
-            currentAttempt++;
-            System.out.println("Retrying connection attempt " + (currentAttempt + 1) + "...");
-        }
-
-        if (connected) {
-            // Launch the JavaFX application if Arduino is connected
-            launch(args);
-        } else {
-            System.out.println("Failed to connect to Arduino.");
-
-            // Ensure the JavaFX toolkit is initialized only if needed
-            if (!Platform.isFxApplicationThread()) {
-                Platform.runLater(() -> {
-                    showAlert(AlertType.ERROR, "Fout", "Kan geen verbinding maken met de Arduino. Controleer de verbinding en probeer het opnieuw.");
-                    System.exit(1);
-                });
-            } else {
-                showAlert(AlertType.ERROR, "Fout", "Kan geen verbinding maken met de Arduino. Controleer de verbinding en probeer het opnieuw.");
-                System.exit(1);
-            }
-        }
+        // Launch the JavaFX application with the loading screen
+        launch(args);
     }
 
     public static String getName() {

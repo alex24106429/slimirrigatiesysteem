@@ -49,6 +49,15 @@ public class PlantViewController {
     private ProgressBar moistureBar;
 
     @FXML
+    private Label moisturePercentage;
+
+    @FXML
+    private Label waterOutputLabel;
+
+    @FXML
+    private Label minMoistureLabel;
+
+    @FXML
     private Label delayProgressText;
 
     @FXML
@@ -66,6 +75,7 @@ public class PlantViewController {
     private int loadingRotations = 0;
     private Plant currentPlant;
     private int currentCountdownValue = 0;
+    private boolean alreadyRefreshing = false;
 
     @FXML
     private void showSearchDialog() {
@@ -109,7 +119,17 @@ public class PlantViewController {
     @FXML
     private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, double currentMoistureLevel) {
         plantNameLabel.setText(name);
-        moistureBar.setProgress(currentMoistureLevel / 1024);
+        System.out.println((int)currentMoistureLevel);
+        System.out.println(minimumMoistureLevel);
+
+        // Convert moisture level (0-1024) to percentage (0-100)
+        double percentage = (currentMoistureLevel / 1024.0);
+        moistureBar.setProgress(percentage); 
+        moisturePercentage.setText((int)(percentage * 100) + "%");
+        minMoistureLabel.setText((int)((minimumMoistureLevel / 1024.0) * 100) + "%");
+        
+        // Set water output label
+        waterOutputLabel.setText(outputML + "mL");
 
         // Load plant image
         String imagePath = "/org/teamhydro/slimirrigatiesysteem/plantImages/" + plantType + ".png";
@@ -133,17 +153,13 @@ public class PlantViewController {
         currentPlant = MainApplication.getPlantByName(name);
 
         boolean success = refreshPlantData();
-        if (success) {
-            // Display success message
-            MainApplication.showAlert(AlertType.INFORMATION, "Success", "Plant data refreshed successfully");
-        } else {
-            // Display error message
+        if (!success) {
             MainApplication.showAlert(AlertType.ERROR, "Error", "Failed to refresh plant data");
         }
 
         // Create new refresh timeline
         refreshTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(20), _ -> {
+            new KeyFrame(Duration.seconds(10), _ -> {
                 refreshPlantData();
             })
         );
@@ -174,20 +190,26 @@ public class PlantViewController {
 
     private void stopLoadingAnimation() {
         if (loadingAnimation != null) {
-            int attempts = 0;
-            while (attempts < 10 && loadingRotations < 2) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            Thread stopAnimationThread = new Thread(() -> {
+                int attempts = 0;
+                while (attempts < 10 && loadingRotations < 2) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    attempts++;
                 }
-                attempts++;
-            }
-            
-            loadingAnimation.stop();
-            loadingAnimation = null;
-            loadingIcon.setVisible(false);
-            loadingIcon.setRotate(0);
+                
+                Platform.runLater(() -> {
+                    loadingAnimation.stop();
+                    loadingAnimation = null;
+                    loadingIcon.setVisible(false); 
+                    loadingIcon.setRotate(0);
+                });
+            });
+            stopAnimationThread.setDaemon(true);
+            stopAnimationThread.start();
         }
     }
 
@@ -197,33 +219,74 @@ public class PlantViewController {
             return false;
         }
 
-        try {
-            startLoadingAnimation();
-            Plant.RefreshResult result = currentPlant.refreshFromArduino();
-
-            if (result.shouldReupload()) {
-                boolean success = MainApplication.sendPlantConfig(currentPlant);
-                if (!success) {
-                    stopLoadingAnimation();
-                    return false;
-                }
-            }
-
-            if (result.isSuccess()) {
-                // Set the moisture level
-                moistureBar.setProgress(currentPlant.getCurrentMoistureLevel() / 1024);
-
-                // Update the delay progress text
-                updateDelayText(currentPlant);
-            }
-
-            stopLoadingAnimation();
-            return result.isSuccess();
-        } catch (Exception e) {
-            System.out.println("Error in refresh: " + e.getMessage());
-            stopLoadingAnimation();
-            return false;
+        if (alreadyRefreshing) {
+            return true;
         }
+
+        alreadyRefreshing = true;
+
+        // Start loading animation on UI thread
+        Platform.runLater(() -> startLoadingAnimation());
+
+        // Create a new thread for Arduino communication
+        Thread refreshThread = new Thread(() -> {
+            try {
+                Plant.RefreshResult result = currentPlant.refreshFromArduino();
+
+                if (result.shouldReupload()) {
+                    boolean success = MainApplication.sendPlantConfig(currentPlant);
+                    if (!success) {
+                        Platform.runLater(() -> {
+                            stopLoadingAnimation();
+                            MainApplication.showAlert(AlertType.ERROR, "Error", "Failed to update Arduino configuration");
+                        });
+                        alreadyRefreshing = false;
+                        return;
+                    }
+                }
+
+                if (result.isSuccess()) {
+                    // Update UI elements on the JavaFX Application Thread
+                    Platform.runLater(() -> {
+                        // Get the current moisture level
+                        double currentMoistureLevel = currentPlant.getCurrentMoistureLevel();
+                        // Convert moisture level (0-1024) to percentage (0-100)
+                        double percentage = (currentMoistureLevel / 1024.0);
+                        moistureBar.setProgress(percentage);
+                        moisturePercentage.setText((int)(percentage * 100) + "%");
+
+                        // Update the delay progress text
+                        updateDelayText(currentPlant);
+
+                        // Stop loading animation
+                        stopLoadingAnimation();
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        stopLoadingAnimation();
+                        MainApplication.showAlert(AlertType.ERROR, "Error", "Failed to refresh plant data");
+                    });
+                }
+
+                if (result.getNewPlantName() != null) {
+                    Platform.runLater(() -> loadPlantFromName(result.getNewPlantName()));
+                }
+            } catch (Exception e) {
+                System.out.println("Error in refresh: " + e.getMessage());
+                Platform.runLater(() -> {
+                    stopLoadingAnimation();
+                    MainApplication.showAlert(AlertType.ERROR, "Error", "An error occurred while refreshing plant data");
+                    alreadyRefreshing = false;
+                });
+            }
+        });
+
+        // Start the background thread
+        refreshThread.setDaemon(true);
+        refreshThread.start();
+
+        alreadyRefreshing = false;
+        return true;
     }
 
     private void startCountdown(int startValue) {
