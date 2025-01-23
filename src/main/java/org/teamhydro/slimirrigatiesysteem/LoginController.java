@@ -26,8 +26,29 @@ public class LoginController {
     private AnchorPane invalidLoginOverlay;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws IOException {
         invalidLoginOverlay.setVisible(false);
+        
+        // Delay cache check to ensure view is loaded
+        javafx.application.Platform.runLater(() -> {
+            try {
+                // Check for valid cache
+                JSONObject cache = UserCache.loadUserCache();
+                if (cache != null && !cache.getString("token").isEmpty()) {
+                    // Auto-login with cached data
+                    ApiController.storeUserData(
+                        cache.getString("token"),
+                        cache.getString("name"),
+                        cache.getString("email"),
+                        cache.getString("address")
+                    );
+                    
+                    switchToPlantView();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @FXML
@@ -55,6 +76,9 @@ public class LoginController {
 
         // Store token and user data
         storeUserData(token, name, email, address);
+
+        // After successful login, save to cache
+        UserCache.saveUserCache(token, name, email, address);
 
         // Handle the response (You can adjust this logic based on the API response)
         if (response.contains("Invalid credentials") || response.isEmpty() || response.startsWith("Error")) {

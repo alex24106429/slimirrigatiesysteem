@@ -9,6 +9,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Rectangle;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+import javafx.scene.Scene;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,8 +57,16 @@ public class PlantViewController {
     @FXML
     private ImageView plantImage;
 
-    private volatile boolean isRunning = true;
-    private Thread refreshThread;
+    @FXML
+    private ImageView loadingIcon;
+
+    private Timeline refreshTimeline;
+    private Timeline loadingAnimation;
+    private Timeline countdownTimeline;
+    private int loadingRotations = 0;
+    private Plant currentPlant;
+    private boolean showingError = false;
+    private int currentCountdownValue = 0;
 
     @FXML
     private void showSearchDialog() {
@@ -98,10 +110,9 @@ public class PlantViewController {
     @FXML
     private void loadPlant(String name, String plantType, boolean useDays, int delay, int outputML, int minimumMoistureLevel, double currentMoistureLevel) {
         plantNameLabel.setText(name);
-
         moistureBar.setProgress(currentMoistureLevel / 1024);
 
-        // Corrected image loading
+        // Load plant image
         String imagePath = "/org/teamhydro/slimirrigatiesysteem/plantImages/" + plantType + ".png";
         try (InputStream inputStream = getClass().getResourceAsStream(imagePath)) {
             if (inputStream != null) {
@@ -115,63 +126,192 @@ public class PlantViewController {
         }
 
         noPlantOverlay.setVisible(false);
+        
+        // Stop existing refresh timeline if it exists
+        stopRefreshTimeline();
+        
+        // Store current plant reference
+        currentPlant = MainApplication.getPlantByName(name);
 
-        // Stop existing refresh thread if it exists
-        stopRefreshThread();
+        boolean success = refreshPlantData();
+        if (success) {
+            // Display success message
+            MainApplication.showAlert(AlertType.INFORMATION, "Success", "Plant data refreshed successfully");
+        } else {
+            // Display error message
+            MainApplication.showAlert(AlertType.ERROR, "Error", "Failed to refresh plant data");
+        }
 
-        // Create new refresh thread
-        refreshThread = new Thread(() -> {
-            while (isRunning) {
-                try {
-                    Thread.sleep(5000);
-                    Plant plant = MainApplication.getPlantByName(name);
-                    if (plant == null) {
-                        isRunning = false;
-                        continue;
-                    }
-                    
-                    boolean success = plant.refreshFromArduino();
-                    if (success) {
-                        Platform.runLater(() -> {
-                            moistureBar.setProgress(plant.getCurrentMoistureLevel() / 1024);
-                            updateDelayText(plant);
-                        });
-                    } else {
-                        // Handle communication failure
-                        Platform.runLater(() -> {
-                            MainApplication.showAlert(AlertType.WARNING, 
-                                "Communication Error", 
-                                "Failed to update plant data from Arduino");
-                        });
-                        Thread.sleep(30000); // Wait longer before retrying
-                    }
-                } catch (InterruptedException e) {
-                    isRunning = false;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    isRunning = false;
-                }
-            }
-        });
-        refreshThread.setDaemon(true);
-        refreshThread.start();
+        // Create new refresh timeline
+        refreshTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(20), event -> {
+                refreshPlantData();
+            })
+        );
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 
-    private void stopRefreshThread() {
-        isRunning = false;
-        if (refreshThread != null) {
-            refreshThread.interrupt();
-            try {
-                refreshThread.join(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    private void startLoadingAnimation() {
+        if (loadingAnimation != null) {
+            loadingRotations = 0;
+            return; // Animation already running
+        }
+
+        loadingIcon.setVisible(true);
+        loadingRotations = 0;
+        
+        loadingAnimation = new Timeline(
+            new KeyFrame(Duration.millis(50), event -> {
+                loadingIcon.setRotate((loadingIcon.getRotate() + 10) % 360);
+                if (loadingIcon.getRotate() % 360 == 0) {
+                    loadingRotations++;
+                }
+            })
+        );
+        loadingAnimation.setCycleCount(Timeline.INDEFINITE);
+        loadingAnimation.play();
+    }
+
+    private void stopLoadingAnimation() {
+        if (loadingAnimation != null) {
+            int attempts = 0;
+            while (attempts < 10 && loadingRotations < 2) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                attempts++;
             }
+            
+            loadingAnimation.stop();
+            loadingAnimation = null;
+            loadingIcon.setVisible(false);
+            loadingIcon.setRotate(0);
         }
     }
 
-    // Add this to handle cleanup
+    private boolean refreshPlantData() {
+        if (currentPlant == null) {
+            stopRefreshTimeline();
+            return false;
+        }
+
+        try {
+            startLoadingAnimation();
+            Plant.RefreshResult result = currentPlant.refreshFromArduino();
+
+            if (result.shouldReupload()) {
+                boolean success = MainApplication.sendPlantConfig(currentPlant);
+                if (!success) {
+                    stopLoadingAnimation();
+                    return false;
+                }
+            }
+
+            if (result.isSuccess()) {
+                // Set the moisture level
+                moistureBar.setProgress(currentPlant.getCurrentMoistureLevel() / 1024);
+
+                // Update the delay progress text
+                updateDelayText(currentPlant);
+            }
+
+            stopLoadingAnimation();
+            return result.isSuccess();
+        } catch (Exception e) {
+            System.out.println("Error in refresh: " + e.getMessage());
+            stopLoadingAnimation();
+            return false;
+        }
+    }
+
+    private void startCountdown(int startValue) {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+
+        currentCountdownValue = startValue;
+        updateCountdownDisplay();
+
+        countdownTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(1), event -> {
+                if (currentCountdownValue > 0) {
+                    currentCountdownValue--;
+                    updateCountdownDisplay();
+                }
+            })
+        );
+        countdownTimeline.setCycleCount(Timeline.INDEFINITE);
+        countdownTimeline.play();
+    }
+
+    private void updateCountdownDisplay() {
+        if (currentPlant == null) return;
+
+        String formattedTime;
+        if (currentPlant.isUseDays()) {
+            int days = currentCountdownValue / 86400;
+            int hours = (currentCountdownValue % 86400) / 3600;
+            int minutes = (currentCountdownValue % 3600) / 60;
+            int seconds = currentCountdownValue % 60;
+            
+            if (days > 0) {
+                formattedTime = String.format("%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
+            } else if (hours > 0) {
+                formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+            } else {
+                formattedTime = String.format("%02d:%02d", minutes, seconds);
+            }
+        } else {
+            int hours = currentCountdownValue / 3600;
+            int minutes = (currentCountdownValue % 3600) / 60;
+            int seconds = currentCountdownValue % 60;
+            
+            if (hours > 0) {
+                formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+            } else {
+                formattedTime = String.format("%02d:%02d", minutes, seconds);
+            }
+        }
+        
+        int totalDelay = currentPlant.getDelay();
+        String totalTime = currentPlant.isUseDays() ? 
+            (totalDelay / 86400) + "d" : 
+            String.format("%02d:%02d:00", totalDelay / 3600, (totalDelay % 3600) / 60);
+        
+        Platform.runLater(() -> delayProgressText.setText(formattedTime + "/" + totalTime));
+    }
+
+    private void updateDelayText(Plant plant) {
+        // Start or restart countdown with current delay value
+        startCountdown(plant.getCurrentDelay());
+    }
+
+    private void stopRefreshTimeline() {
+        if (refreshTimeline != null) {
+            refreshTimeline.stop();
+            refreshTimeline = null;
+        }
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+            countdownTimeline = null;
+        }
+        currentPlant = null;
+    }
+
+    // Update cleanup method
     public void cleanup() {
-        stopRefreshThread();
+        stopRefreshTimeline();
+        if (loadingAnimation != null) {
+            loadingAnimation.stop();
+            loadingAnimation = null;
+        }
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+            countdownTimeline = null;
+        }
     }
 
     @FXML
@@ -218,36 +358,53 @@ public class PlantViewController {
     public void unselectPlant() {
         noPlantOverlay.setVisible(true);
         plantNameLabel.setText("Selecteer een plant");
-
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+            countdownTimeline = null;
+        }
     }
 
     @FXML
     public void initialize() throws IOException {
         userPopout.setVisible(false);
         updateOverlay.setVisible(false);
+        loadingIcon.setVisible(false);
 
         nameText.setText(MainApplication.getName());
         emailText.setText(MainApplication.getEmail());
 
         unselectPlant();
 
-        // Delay the call to openCreatePlantView until after the UI is fully initialized
-        Platform.runLater(() -> {
-            if (MainApplication.plants.length == 0) {
-                try {
-                    openCreatePlantView();
-                    MainApplication.showAlert(AlertType.INFORMATION, "Info", "Maak voor het gebruik eerst een plant aan.");
-                    return;
-                } catch (IOException e) {
-                    e.printStackTrace();
+        // Only show plant selection if we're logged in (have a name)
+        if (!MainApplication.getName().isEmpty()) {
+            Platform.runLater(() -> {
+                if (MainApplication.plants.length == 0) {
+                    try {
+                        openCreatePlantView();
+                        MainApplication.showAlert(AlertType.INFORMATION, "Info", 
+                            "Maak voor het gebruik eerst een plant aan.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else if (MainApplication.plants.length == 1) {
+                    Plant firstPlant = MainApplication.plants[0];
+                    loadPlantFromName(firstPlant.getName());
+                } else {
+                    showSearchDialog();
                 }
+            });
+        }
+
+        // Stop refresh timeline when switching views
+        Platform.runLater(() -> {
+            Scene scene = plantNameLabel.getScene();
+            if (scene != null) {
+                scene.windowProperty().addListener((obs, oldWindow, newWindow) -> {
+                    if (newWindow == null) {
+                        stopRefreshTimeline();
+                    }
+                });
             }
-            if(MainApplication.plants.length == 1) {
-                Plant firstPlant = MainApplication.plants[0];
-                loadPlantFromName(firstPlant.getName());
-                return;
-            }
-            showSearchDialog();
         });
 
         System.out.println("Plant View Controller initialized.");
@@ -294,30 +451,5 @@ public class PlantViewController {
         FXMLLoader loader = MainApplication.switchView("create-plant-view.fxml");
         CreatePlantController controller = loader.getController();
         controller.loadPlantData(currentPlantName);
-    }
-
-    @FXML
-    private void syncWithMicroBit() {
-        // TODO: Sync with the Micro:Bit
-        MainApplication.showAlert(AlertType.INFORMATION, "Sync with Micro:Bit", "TODO");
-    }
-
-    private void updateDelayText(Plant plant) {
-        // Format delay time
-        int currentDelay = plant.getCurrentDelay();
-        
-        String formattedTime;
-        if (plant.isUseDays()) {
-            int days = currentDelay / (24 * 3600);
-            formattedTime = days + "d";
-        } else {
-            int hours = currentDelay / 3600;
-            int minutes = (currentDelay % 3600) / 60;
-            int seconds = currentDelay % 60;
-            formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        }
-        
-        delayProgressText.setText(formattedTime + "/" + 
-            (plant.isUseDays() ? plant.getDelay() + "d" : "0h"));
     }
 }

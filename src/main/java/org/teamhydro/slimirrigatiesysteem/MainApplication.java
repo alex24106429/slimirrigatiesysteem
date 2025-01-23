@@ -8,6 +8,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.transform.Scale;
 import javafx.scene.Parent;
@@ -15,6 +17,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -31,6 +34,8 @@ public class MainApplication extends Application {
     protected static int timeout = 1000;
     protected static int dataBits = 8;
     private static Object currentController;
+    private static String remainingData = "";  // Add this class field to store leftover data
+    private static String lastReceivedResponse = null;  // Add this field
 
     public static Connection getDatabaseConnection() {
         if (dbConn != null) return dbConn;
@@ -59,33 +64,213 @@ public class MainApplication extends Application {
         }
     }
 
-    protected static void sendDataToArduino(String data) {
-        try {
-            arduinoPort.getOutputStream().write((data + "\n").getBytes());
-            arduinoPort.getOutputStream().flush();
-            System.out.println("Sent: " + data);
-
-            // Wait for Arduino to process the data (e.g., 100 ms)
-            Thread.sleep(100);
-        } catch (Exception e) {
-            System.out.println("Error sending data: " + e.getMessage());
+    protected static boolean sendDataToArduino(String data) {
+        if (arduinoPort == null || !arduinoPort.isOpen()) {
+            System.out.println("Arduino port is not open");
+            return false;
         }
+    
+        try {
+            // Clear input buffer and remaining data
+            clearInputBuffer();
+            clearRemainingData();
+            Thread.sleep(500);
+    
+            // Step 1: Send READY and wait for acknowledgment
+            System.out.println("Sending READY signal...");
+            int readyAttempts = 3;
+            boolean readyAcknowledged = false;
+            
+            while (readyAttempts > 0 && !readyAcknowledged) {
+                arduinoPort.getOutputStream().write("READY\n".getBytes());
+                arduinoPort.getOutputStream().flush();
+                Thread.sleep(500);
+                
+                String response = waitForResponse(3000);
+                System.out.println("READY response: " + response);
+                if (response != null && response.contains("READY_ACK")) {
+                    readyAcknowledged = true;
+                    break;
+                }
+                readyAttempts--;
+                Thread.sleep(200);
+            }
+            
+            if (!readyAcknowledged) {
+                System.out.println("Failed to establish ready handshake after 3 attempts");
+                return false;
+            }
+    
+            // Step 2: Send message with checksum
+            Thread.sleep(200);
+            int checksum = calculateChecksum(data);
+            String message = String.format("MSG:%d:%s\n", checksum, data);
+            System.out.println("Sending message: " + message.trim());
+            
+            arduinoPort.getOutputStream().write(message.getBytes());
+            arduinoPort.getOutputStream().flush();
+            Thread.sleep(500);
+    
+            // Step 3: Wait for checksum acknowledgment
+            String checksumResponse = waitForResponse(3000);
+            
+            if ("CHECKSUM_OK".equals(checksumResponse)) {
+                // Step 4: Wait for command response
+                String commandResponse = waitForResponse(3000);
+    
+                if (data.equals("fetch")) {
+                    lastReceivedResponse = commandResponse;  // Store the response
+                    return commandResponse != null && commandResponse.startsWith("[{") && commandResponse.endsWith("}]");
+                }
+                if (data.equals("ping")) {
+                    return commandResponse != null && commandResponse.contains("pong");
+                }
+                return commandResponse != null && commandResponse.contains("Done");
+            }
+    
+            return false;
+    
+        } catch (Exception e) {
+            System.out.println("Error in communication: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static void clearInputBuffer() throws Exception {
+        while (arduinoPort.bytesAvailable() > 0) {
+            byte[] buffer = new byte[arduinoPort.bytesAvailable()];
+            arduinoPort.readBytes(buffer, buffer.length);
+        }
+    }
+
+    private static int calculateChecksum(String data) {
+        int checksum = 0;
+        for (char c : data.toCharArray()) {
+            checksum += c;
+        }
+        return checksum;
+    }
+
+    private static String waitForResponse(int timeoutMs) {
+        try {
+            long startTime = System.currentTimeMillis();
+            
+            // First check if we have any remaining data from previous reads
+            if (!remainingData.isEmpty()) {
+                String result = processReceivedData(remainingData);
+                if (result != null) {
+                    // Clear the processed part from remainingData
+                    int endMarker = remainingData.indexOf("###", remainingData.indexOf("###PROTOCOL:") + 12);
+                    if (endMarker >= 0) {
+                        remainingData = remainingData.substring(endMarker + 3).trim();
+                    }
+                    return result;
+                }
+            }
+            
+            while (System.currentTimeMillis() - startTime < timeoutMs) {
+                if (arduinoPort.bytesAvailable() > 0) {
+                    Thread.sleep(100); // Allow more data to accumulate
+                    
+                    byte[] buffer = new byte[1024];
+                    int numRead = arduinoPort.readBytes(buffer, buffer.length);
+                    
+                    if (numRead > 0) {
+                        String received = remainingData + new String(buffer, 0, numRead).trim();
+                        System.out.println("Raw received: " + received);
+                        
+                        String result = processReceivedData(received);
+                        if (result != null) {
+                            // Store any remaining data after the processed message
+                            int endMarker = received.indexOf("###", received.indexOf("###PROTOCOL:") + 12);
+                            if (endMarker >= 0) {
+                                remainingData = received.substring(endMarker + 3).trim();
+                            }
+                            return result;
+                        }
+                        
+                        // If no valid message was found, store all data as remaining
+                        remainingData = received;
+                    }
+                }
+                Thread.sleep(50);
+            }
+            
+            System.out.println("Timeout reached without valid response");
+            return null;
+            
+        } catch (Exception e) {
+            System.out.println("Error waiting for response: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String processReceivedData(String data) {
+        int currentIndex = 0;
+        while (true) {
+            int startMarker = data.indexOf("###PROTOCOL:", currentIndex);
+            if (startMarker < 0) break;
+            
+            int endMarker = data.indexOf("###", startMarker + 12);
+            if (endMarker < 0) break;
+            
+            String protocolMessage = data.substring(startMarker + 12, endMarker);
+            System.out.println("Found protocol message: " + protocolMessage);
+            
+            // Return immediately on valid protocol responses
+            if (protocolMessage.matches(".*(READY_ACK|CHECKSUM_OK|pong|Done).*") || 
+                (protocolMessage.trim().startsWith("[") && protocolMessage.trim().endsWith("]"))) {
+                return protocolMessage;
+            }
+            
+            // Move to next potential message
+            currentIndex = endMarker + 3;
+        }
+        return null;
     }
 
     protected static String receiveDataFromArduino() {
         try {
-            byte[] buffer = new byte[1024]; // Buffer to hold incoming data
-            int numRead = arduinoPort.readBytes(buffer, buffer.length); // Read available bytes
-            if (numRead > 0) {
-                String receivedData = new String(buffer, 0, numRead).trim(); // Convert bytes to string
-                System.out.println("Received: " + receivedData);
-                return receivedData; // Return the received string
-            } else {
-                System.out.println("No data received.");
-                return null; // No data was read
+            StringBuilder response = new StringBuilder();
+            int noDataCount = 0;
+            final int MAX_WAIT_CYCLES = 40;
+            
+            System.out.println("Waiting for Arduino response...");
+            
+            while (noDataCount < MAX_WAIT_CYCLES) {
+                if (arduinoPort.bytesAvailable() > 0) {
+                    noDataCount = 0;
+                    
+                    byte[] buffer = new byte[arduinoPort.bytesAvailable()];
+                    int numRead = arduinoPort.readBytes(buffer, buffer.length);
+                    
+                    if (numRead > 0) {
+                        String received = new String(buffer, 0, numRead);
+                        
+                        // Look for protocol messages
+                        int startMarker = received.indexOf("###PROTOCOL:");
+                        int endMarker = received.indexOf("###", startMarker + 12);
+                        
+                        if (startMarker >= 0 && endMarker >= 0) {
+                            String protocolMessage = received.substring(startMarker + 12, endMarker);
+                            return protocolMessage;
+                        }
+                    }
+                    
+                    Thread.sleep(50);
+                } else {
+                    noDataCount++;
+                    Thread.sleep(100);
+                }
             }
+            
+            return null;
+            
         } catch (Exception e) {
             System.out.println("Error reading from Arduino: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -96,17 +281,17 @@ public class MainApplication extends Application {
         setCurrentController(fxmlLoader.getController());
     
         // Define the scale factor as a variable
-        double scaleFactor = 1.411764705882353; // 48 / 34 (icons are 48px, but scaled to 34px, making this the optimal factor for high-res icons)
+        double scaleFactor = 1.411764705882353;
     
         // Create a Scale transformation
         Scale scale = new Scale();
-        scale.setX(scaleFactor);  // Scale X by the scale factor
-        scale.setY(scaleFactor);  // Scale Y by the scale factor
+        scale.setX(scaleFactor);
+        scale.setY(scaleFactor);
     
         // Apply the transformation to the root node
         root.getTransforms().add(scale);
     
-        // Adjust the scene size based on the scale factor
+        // Create the scene with a StackPane as root to support overlays
         Scene scene = new Scene(root, 640 * scaleFactor, 400 * scaleFactor);
     
         String title = switch (fxmlName) {
@@ -118,6 +303,20 @@ public class MainApplication extends Application {
             default -> "Onbekend";
         };
         globalStage.setTitle(title + " - Slim Irrigatie Systeem");
+
+        // Set application icon
+        try {
+            InputStream iconStream = MainApplication.class.getResourceAsStream("/org/teamhydro/slimirrigatiesysteem/icons/droplet.png");
+            if (iconStream != null) {
+                Image icon = new Image(iconStream);
+                globalStage.getIcons().add(icon);
+            } else {
+                System.out.println("Warning: Could not load application icon");
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading application icon: " + e.getMessage());
+        }
+
         globalStage.setScene(scene);
         globalStage.show();
 
@@ -193,28 +392,22 @@ public class MainApplication extends Application {
         return arduinoPort;
     }
 
-    private static boolean testArduinoConnectivity() {
+    protected static boolean testArduinoConnectivity() {
         try {
             // Wait for the Arduino to connect
             while (getArduinoSerialConnection() == null) {
                 System.out.println("Waiting for Arduino connection...");
-
-                //noinspection BusyWait
                 Thread.sleep(5000);
             }
 
-            // Test communication
-            sendDataToArduino("ping");
-            String response = receiveDataFromArduino();
-            if ("pong".equals(response)) {
-                System.out.println("Arduino responded correctly!");
-            } else {
-                System.out.println("Arduino did not respond correctly.");
-                Thread.sleep(2000);
-                return false;
+            // Clear any existing data
+            while (arduinoPort.bytesAvailable() > 0) {
+                arduinoPort.readBytes(new byte[arduinoPort.bytesAvailable()], arduinoPort.bytesAvailable());
             }
 
-            return true;
+            // Test communication
+            return sendDataToArduino("ping");
+            
         } catch (Exception e) {
             System.out.println("Error establishing Arduino connection: " + e.getMessage());
             return false;
@@ -224,6 +417,7 @@ public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         globalStage = stage;
+        
         switchView("login-view.fxml");
         stage.setResizable(false);
     }
@@ -304,6 +498,11 @@ public class MainApplication extends Application {
         return ApiController.getStoredAddress();
     }
 
+    public static void updateUserInfo(String name, String address, String email) throws Exception {
+        ApiController.storeUserData(ApiController.getStoredToken(), name, address, email);
+        ApiController.updateUserInfo(name, address, email);
+    }
+
     @FXML
     public static void fadeOut(AnchorPane element, int time) {
         FadeTransition fadeOut = new FadeTransition();
@@ -339,5 +538,77 @@ public class MainApplication extends Application {
 
     public static void setCurrentController(Object controller) {
         currentController = controller;
+    }
+
+    private static void clearRemainingData() {
+        remainingData = "";
+    }
+
+    protected static boolean sendPlantConfig(Plant plant) {
+        try {
+            // Send each piece of configuration separately
+            if (!sendDataToArduino("pn-" + plant.getName())) {
+                System.out.println("Failed to send plant name");
+                return false;
+            }
+            Thread.sleep(100);
+
+            if (!sendDataToArduino("pt-" + plant.getType())) {
+                System.out.println("Failed to send plant type");
+                return false;
+            }
+            Thread.sleep(100);
+
+            if (!sendDataToArduino("ud-" + plant.getUseDays())) {
+                System.out.println("Failed to send use days setting");
+                return false;
+            }
+            Thread.sleep(100);
+
+            if (!sendDataToArduino("dt-" + plant.getDelay())) {
+                System.out.println("Failed to send delay time");
+                return false;
+            }
+            Thread.sleep(100);
+
+            if (!sendDataToArduino("om-" + plant.getOutputML())) {
+                System.out.println("Failed to send output ML");
+                return false;
+            }
+            Thread.sleep(100);
+
+            if (!sendDataToArduino("mm-" + plant.getMinimumMoistureLevel())) {
+                System.out.println("Failed to send minimum moisture level");
+                return false;
+            }
+            Thread.sleep(100);
+
+            // Finally, tell Arduino to apply all settings
+            if (!sendDataToArduino("apply")) {
+                System.out.println("Failed to apply settings");
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("Error sending plant configuration: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Add this method to get the last response
+    protected static String getLastReceivedResponse() {
+        String response = lastReceivedResponse;
+        lastReceivedResponse = null;  // Clear after reading
+        return response;
+    }
+
+    public static boolean showConfirmationDialog(String message) {
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 }

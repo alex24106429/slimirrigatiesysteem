@@ -154,21 +154,13 @@ public class CreatePlantController implements Initializable {
             // Create a new Plant object
             Plant newPlant = new Plant(name, plantType, useDays, delay, outputML, minimumMoistureLevel, currentMoistureLevel);
 
-            // Create JSON array with plant data
-            String jsonData = String.format("[{\"name\":\"%s\",\"type\":\"%s\",\"useDays\":%b,\"delay\":%d,\"outputML\":%d,\"minMoisture\":%d}]",
-                name, plantType, useDays, delay, outputML, minimumMoistureLevel);
-
             // Try sending to Arduino up to 5 times
             boolean arduinoSuccess = false;
             for (int i = 0; i < 5; i++) {
-                MainApplication.sendDataToArduino(jsonData);
-                String response = MainApplication.receiveDataFromArduino();
-                
-                if ("Done!".equals(response)) {
+                if (MainApplication.sendPlantConfig(newPlant)) {
                     arduinoSuccess = true;
                     break;
                 }
-                
                 Thread.sleep(1000); // Wait a second before retrying
             }
 

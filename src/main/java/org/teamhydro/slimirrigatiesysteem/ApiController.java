@@ -68,6 +68,14 @@ public class ApiController {
         return sendPostRequest("logout", payload);
     }
 
+    public static String updateUserInfo(String name, String address, String email) throws Exception {
+        // Prepare the JSON payload for updating user info
+        String payload = String.format("{\"name\": \"%s\", \"address\": \"%s\", \"email\": \"%s\"}", name, address, email);
+
+        // Send the POST request and get the response
+        return sendPostRequest("update-user-info", payload);
+    }
+
     // Function to send POST request with JSON payload
     private static String sendPostRequest(String endpoint, String payload) throws Exception {
         // Create the HttpClient

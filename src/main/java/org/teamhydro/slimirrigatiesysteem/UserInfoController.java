@@ -2,6 +2,7 @@ package org.teamhydro.slimirrigatiesysteem;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert;
 
 import java.io.IOException;
 
@@ -39,11 +40,11 @@ public class UserInfoController {
         String address = addressField.getText();
         String email = emailField.getText();
 
-        // TODO: Update user data on the server
-        System.out.println(name);
-        System.out.println(address);
-        System.out.println(email);
-
-        MainApplication.switchView("plant-view.fxml");
+        try {
+            MainApplication.updateUserInfo(name, address, email);
+            MainApplication.switchView("plant-view.fxml");
+        } catch (Exception e) {
+            MainApplication.showAlert(Alert.AlertType.ERROR, "Error", "Failed to update user info: " + e.getMessage());
+        }
     }
 }

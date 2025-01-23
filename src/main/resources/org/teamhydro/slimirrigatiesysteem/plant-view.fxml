@@ -29,11 +29,6 @@
                         <Image url="@icons/user.png" />
                     </image>
                 </ImageView>
-            <ImageView fitHeight="34.0" fitWidth="34.0" layoutX="114.0" layoutY="9.0" onMouseClicked="#syncWithMicroBit" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@icons/sync.png" />
-               </image>
-            </ImageView>
             <Label fx:id="plantNameLabel" alignment="CENTER" layoutX="150.0" layoutY="14.0" prefHeight="25.0" prefWidth="340.0" text="Plant Name Placeholder" textAlignment="CENTER">
                <font>
                   <Font size="18.0" />
@@ -70,6 +65,11 @@
             </ImageView>
             <ProgressBar fx:id="moistureBar" layoutX="235.0" layoutY="297.0" prefWidth="200.0" progress="0.8" />
             <Label fx:id="delayProgressText" layoutX="235.0" layoutY="327.0" text="00:00s/0h" />
+            <ImageView fx:id="loadingIcon" fitHeight="16.0" fitWidth="16.0" layoutX="440.0" layoutY="327.0" pickOnBounds="true" preserveRatio="true" visible="false">
+               <image>
+                  <Image url="@icons/sync.png" />
+               </image>
+            </ImageView>
             <Rectangle id="noPlantOverlay" fx:id="noPlantOverlay" height="350.0" layoutY="50.0" smooth="false" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" visible="false" width="640.0" />
             <AnchorPane fx:id="userPopout" prefHeight="400.0" prefWidth="640.0" visible="false">
                <children>
