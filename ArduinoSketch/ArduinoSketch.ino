@@ -80,13 +80,15 @@ void setup() {
   
   clearSerialBuffer();
 
-  // Check if EEPROM is initialized
-  if (EEPROM.read(EEPROM_INITIALIZED_ADDR) == 0xFF) {
-    // First time running, initialize with defaults
-    initializeEEPROM();
-  } else {
-    // Load saved values
-    loadFromEEPROM();
+  if (!debug) {
+    // Check if EEPROM is initialized
+    if (EEPROM.read(EEPROM_INITIALIZED_ADDR) == 0xFF) {
+      // First time running, initialize with defaults
+      initializeEEPROM();
+    } else {
+      // Load saved values
+      loadFromEEPROM();
+    }
   }
 }
 
@@ -240,8 +242,12 @@ void handleDisplayAndWatering() {
     lastSaveTime = millis();
   }
 
-  // Update display
-  updateDisplay();
+  // Update display once per second
+  static unsigned long lastDisplayUpdate = 0;
+  if (millis() - lastDisplayUpdate >= 1000) {
+    updateDisplay();
+    lastDisplayUpdate = millis();
+  }
 
   // Check if watering is needed
   if (millis() >= targetTimestamp) {
@@ -325,11 +331,20 @@ void checkDebugMode() {
   if (debug) {
     setupDebugMode();
   } else {
+    // Only initialize/load EEPROM if not in debug mode
+    if (EEPROM.read(EEPROM_INITIALIZED_ADDR) == 0xFF) {
+      initializeEEPROM();
+    } else {
+      loadFromEEPROM();
+    }
     updateLCD("Status:", "Awaiting setup..");
   }
 }
 
 void setupDebugMode() {
+  // Set debug values without touching EEPROM
+  strlcpy(plantName, "Debug Plant", sizeof(plantName));
+  strlcpy(plantType, "Test Type", sizeof(plantType));
   delayTime = .005;
   shouldUseDays = false;
   totalDelayMs = delayTime * (shouldUseDays ? 24L * 60L * 60L * 1000L : 60L * 60L * 1000L);
@@ -403,6 +418,7 @@ void initializeEEPROM() {
 }
 
 void loadFromEEPROM() {
+  if (debug) return;  // Skip EEPROM operations in debug mode
   // Load plant name
   for (int i = 0; i < 32; i++) {
     plantName[i] = EEPROM.read(PLANT_NAME_ADDR + i);
@@ -444,6 +460,8 @@ void loadFromEEPROM() {
 }
 
 void saveToEEPROM() {
+  if (debug) return;  // Skip EEPROM operations in debug mode
+  
   // Save plant name
   for (int i = 0; i < 32; i++) {
     EEPROM.update(PLANT_NAME_ADDR + i, plantName[i]);
@@ -463,6 +481,8 @@ void saveToEEPROM() {
 }
 
 void saveCurrentProgress() {
+  if (debug) return;  // Skip EEPROM operations in debug mode
+  
   // Calculate and save the current delay value
   unsigned long currentDelay = (targetTimestamp > millis()) ? (targetTimestamp - millis()) / 1000 : 0;
   EEPROM.put(TARGET_TIMESTAMP_ADDR, targetTimestamp);

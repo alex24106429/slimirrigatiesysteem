@@ -276,9 +276,14 @@ public class PlantViewController {
         }
         
         int totalDelay = currentPlant.getDelay();
-        String totalTime = currentPlant.isUseDays() ? 
-            (totalDelay / 86400) + "d" : 
-            String.format("%02d:%02d:00", totalDelay / 3600, (totalDelay % 3600) / 60);
+        String totalTime;
+        if (currentPlant.isUseDays()) {
+            // Convert days to seconds for display
+            totalTime = totalDelay + "d";
+        } else {
+            // Convert hours to HH:mm format
+            totalTime = String.format("%02d:%02d:00", totalDelay, 0);
+        }
         
         Platform.runLater(() -> delayProgressText.setText(formattedTime + "/" + totalTime));
     }
