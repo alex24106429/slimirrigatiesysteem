@@ -234,7 +234,7 @@ public class PlantViewController {
                 Plant.RefreshResult result = currentPlant.refreshFromArduino();
 
                 if (result.shouldReupload()) {
-                    boolean success = MainApplication.sendPlantConfig(currentPlant);
+                    boolean success = ArduinoController.sendPlantConfig(currentPlant);
                     if (!success) {
                         Platform.runLater(() -> {
                             stopLoadingAnimation();

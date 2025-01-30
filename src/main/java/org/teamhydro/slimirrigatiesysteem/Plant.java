@@ -53,20 +53,19 @@ public class Plant {
             try {
                 System.out.println("Starting Arduino refresh...");
                 
-                if (!MainApplication.sendDataToArduino("fetch")) {
+                if (!ArduinoController.sendDataToArduino("fetch")) {
                     System.out.println("Failed to send fetch command");
                     return new RefreshResult(false, null);
                 }
                 
-                String response = MainApplication.getLastReceivedResponse();
+                String response = ArduinoController.getLastReceivedResponse();
                 System.out.println("Received response: " + response);
                 
-                if (response == null || !response.startsWith("[{") || !response.endsWith("}]")) {
+                if (response == null || !response.startsWith("{") || !response.endsWith("}")) {
                     System.out.println("Invalid response format");
                     return new RefreshResult(false, null);
                 }
 
-                response = response.substring(1, response.length() - 1);
                 JSONObject jsonResponse = new JSONObject(response);
                 
                 // Check if Arduino has different plant
@@ -92,31 +91,20 @@ public class Plant {
 
                 // Update only if values exist and are valid
                 if (jsonResponse.has("currentDelay")) {
-                    String delayStr = jsonResponse.getString("currentDelay");
-                    try {
-                        this.currentDelay = Integer.parseInt(delayStr);
-                        System.out.println("Updated currentDelay to: " + this.currentDelay);
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid currentDelay value: " + delayStr);
-                    }
+                    this.currentDelay = jsonResponse.getInt("currentDelay");
+                    System.out.println("Updated currentDelay to: " + this.currentDelay);
                 }
 
                 if (jsonResponse.has("shouldUseDays")) {
-                    String useDaysStr = jsonResponse.getString("shouldUseDays");
-                    this.useDays = Boolean.parseBoolean(useDaysStr);
+                    this.useDays = jsonResponse.getBoolean("shouldUseDays");
                     System.out.println("Updated useDays to: " + this.useDays);
                 }
 
                 if (jsonResponse.has("moistureLevel")) {
-                    String moistureStr = jsonResponse.getString("moistureLevel");
-                    try {
-                        int moisture = Integer.parseInt(moistureStr);
-                        if (moisture >= 0) {
-                            this.currentMoistureLevel = moisture;
-                            System.out.println("Updated moistureLevel to: " + this.currentMoistureLevel);
-                        }
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid moistureLevel value: " + moistureStr);
+                    int moisture = jsonResponse.getInt("moistureLevel");
+                    if (moisture >= 0) {
+                        this.currentMoistureLevel = moisture;
+                        System.out.println("Updated moistureLevel to: " + this.currentMoistureLevel);
                     }
                 }
 

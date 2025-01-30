@@ -165,7 +165,7 @@ public class CreatePlantController implements Initializable {
             // Try sending to Arduino up to 5 times
             boolean arduinoSuccess = false;
             for (int i = 0; i < 5; i++) {
-                if (MainApplication.sendPlantConfig(newPlant)) {
+                if (ArduinoController.sendPlantConfig(newPlant)) {
                     arduinoSuccess = true;
                     break;
                 }
